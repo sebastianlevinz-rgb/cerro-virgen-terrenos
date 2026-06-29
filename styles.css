@@ -1,0 +1,74 @@
+/* ===========================================================================
+   styles.css  ·  estilos propios (lo no-Tailwind: print, mapa, detalles)
+   =========================================================================== */
+
+html { scroll-behavior: smooth; scroll-padding-top: 64px; }
+body { background-color: #F7F2E9; }
+.font-serif { font-feature-settings: "ss01"; }
+
+/* Placeholder con gradiente terracota/ocre cuando una foto no baja */
+.ph-grad { background: linear-gradient(135deg, #B4502E 0%, #C98A2B 60%, #E3B765 100%); }
+
+/* Encabezados de tabla clickeables */
+th.sortable { cursor: pointer; user-select: none; white-space: nowrap; }
+th.sortable:hover { color: #8A3A1F; }
+.sort-arrow { font-size: 0.7em; opacity: 0.4; }
+th.sort-active { color: #8A3A1F; }
+th.sort-active .sort-arrow { opacity: 1; }
+
+/* Fila resaltada al clickear su pin en el mapa (y viceversa) */
+tr.row-highlight { outline: 2px solid #C98A2B; outline-offset: -2px; background: #FBEFD8 !important; }
+
+/* Barras de sub-score */
+.scorebar { height: 6px; border-radius: 999px; background: #EFE7D8; overflow: hidden; }
+.scorebar > span { display: block; height: 100%; border-radius: 999px; }
+
+/* Leaflet dentro de card redondeada */
+#map { height: 440px; width: 100%; z-index: 0; }
+@media (max-width: 640px) { #map { height: 340px; } }
+.leaflet-container { background: #EFE7D8; border-radius: 0.75rem; font-family: 'Inter', sans-serif; }
+.pin-num {
+  width: 22px; height: 22px; border-radius: 50% 50% 50% 0; transform: rotate(-45deg);
+  border: 2px solid #fff; box-shadow: 0 1px 4px rgba(0,0,0,.4);
+  display: flex; align-items: center; justify-content: center;
+}
+.pin-num > span { transform: rotate(45deg); color: #fff; font-size: 10px; font-weight: 700; }
+
+/* Mini-nav sticky */
+.mininav a { transition: color .15s; }
+.mininav a:hover { color: #8A3A1F; }
+
+/* Range sliders en paleta cerro */
+input[type="range"] { accent-color: #B4502E; }
+
+/* ===========================  IMPRESION A4  =========================== */
+@media print {
+  @page { size: A4; margin: 12mm; }
+  html { scroll-padding-top: 0; }
+  body { background: #fff !important; color: #000; font-size: 11px; }
+
+  /* Ocultar lo interactivo / decorativo que no aporta al PDF */
+  .no-print, .mininav, #galeria, .filtro-btn, .pesos-panel,
+  button, input, select { display: none !important; }
+
+  /* Que las secciones no se corten feo */
+  section, .print-block { break-inside: avoid; page-break-inside: avoid; }
+  header { background: #fff !important; color: #000 !important; }
+  header * { color: #000 !important; }
+  .bg-terracota, .bg-cerroDark, .bg-cerro, .bg-ocreLight\/30, .ph-grad {
+    background: #fff !important; color: #000 !important;
+  }
+  .bg-terracota *, .bg-cerroDark * { color: #000 !important; }
+  .shadow-xl, .shadow-md, .shadow-sm { box-shadow: none !important; }
+  a { color: #000 !important; text-decoration: underline; }
+  a[href]::after { content: " (" attr(href) ")"; font-size: 8px; color: #555; }
+  /* No imprimir las URLs larguisimas de cada link de la tabla */
+  table a[href]::after { content: ""; }
+
+  #map { height: 300px !important; }
+  .max-w-6xl { max-width: 100% !important; }
+
+  /* Forzar que la calculadora muestre el ultimo resultado */
+  #calc-output { display: block !important; }
+  .print-show { display: block !important; }
+}

@@ -6,219 +6,53 @@
 <meta name="robots" content="noindex, nofollow" />
 <title>Cerro de la Virgen · Estudio de terrenos</title>
 
-<!-- ============================================================= -->
-<!--  Tailwind (CDN) + Leaflet (CDN). Sin build, sin frameworks.   -->
-<!-- ============================================================= -->
+<!-- CDN: Tailwind, Leaflet (+OSM), Chart.js. Sin build, sin frameworks. -->
 <script src="https://cdn.tailwindcss.com"></script>
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
       integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
         integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 
-<!-- Tipografías: serif con carácter para títulos, sans para datos -->
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,900&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
 
 <script>
-  // Paleta salteña / cerro definida como tokens de Tailwind
   tailwind.config = {
-    theme: {
-      extend: {
-        colors: {
-          hueso:    '#F7F2E9',
-          hueso2:   '#EFE7D8',
-          terracota:'#B4502E',
-          terraDark:'#8A3A1F',
-          ocre:     '#C98A2B',
-          ocreLight:'#E3B765',
-          cerro:    '#4F6B4A',
-          cerroDark:'#34492F',
-          tinta:    '#2A211A',
-        },
-        fontFamily: {
-          serif: ['Fraunces', 'Georgia', 'serif'],
-          sans:  ['Inter', 'system-ui', 'sans-serif'],
-        },
+    theme: { extend: {
+      colors: {
+        hueso:'#F7F2E9', hueso2:'#EFE7D8', terracota:'#B4502E', terraDark:'#8A3A1F',
+        ocre:'#C98A2B', ocreLight:'#E3B765', cerro:'#4F6B4A', cerroDark:'#34492F', tinta:'#2A211A',
       },
-    },
+      fontFamily: { serif:['Fraunces','Georgia','serif'], sans:['Inter','system-ui','sans-serif'] },
+    } },
   };
 </script>
-
-<style>
-  html { scroll-behavior: smooth; }
-  body { background-color: #F7F2E9; }
-  .font-serif { font-feature-settings: "ss01"; }
-  /* Placeholder con gradiente terracota/ocre cuando una foto no baja */
-  .ph-grad {
-    background: linear-gradient(135deg, #B4502E 0%, #C98A2B 60%, #E3B765 100%);
-  }
-  /* Encabezados de tabla clickeables */
-  th.sortable { cursor: pointer; user-select: none; }
-  th.sortable:hover { color: #8A3A1F; }
-  .sort-arrow { font-size: 0.7em; opacity: 0.5; }
-  th.sort-active .sort-arrow { opacity: 1; }
-  /* Leaflet dentro de card redondeada */
-  #map { height: 420px; width: 100%; z-index: 0; }
-  @media (max-width: 640px) { #map { height: 320px; } }
-  .leaflet-container { background: #EFE7D8; border-radius: 0.75rem; font-family: 'Inter', sans-serif; }
-</style>
+<link rel="stylesheet" href="styles.css" />
 </head>
 
 <body class="font-sans text-tinta antialiased">
 
-<!-- =============================================================== -->
-<!--  DATOS EDITABLES  ·  EDITÁ ESTE BLOQUE A MANO                    -->
-<!--  Toda la tabla de comparables sale de este array.               -->
-<!--  Campos:                                                        -->
-<!--   zona      : texto corto (calle / sector)                      -->
-<!--   m2        : superficie en m² (número)                         -->
-<!--   usd       : precio total publicado en USD (número)            -->
-<!--               -> el USD/m² se calcula solo (usd / m2)           -->
-<!--   agua      : 'red' | 'pozo' | 'no' | '?'                       -->
-<!--   luz       : 'si' | 'no' | '?'                                 -->
-<!--   gas       : 'red' | 'envasado' | 'no' | '?'                   -->
-<!--   cloaca    : 'si' | 'no' | '?'  (LEÉ EL CUERPO DEL AVISO!)     -->
-<!--   titulo    : 'escritura' | 'posesion' | 'boleto' | '?'         -->
-<!--   sector    : 'country' (contraste) | 'cerro'                   -->
-<!--   estimacion: true  -> muestra badge "estimación" (comp flojo)  -->
-<!--   link      : URL al aviso ('' si es estimación)                -->
-<!--   fuente    : 'Zonaprop' | 'Argenprop' | 'Nuroa' | ...          -->
-<!--   notas     : texto libre                                       -->
-<!-- =============================================================== -->
-<script>
-const COMPARABLES = [
-
-  // =====  ZONA OBJETIVO  ·  cerro, AFUERA del country  =====
-
-  // ★ El lote más alineado con lo que buscás. Afuera del country, sobre la ladera
-  //   camino a la Virgen / Cerro 20 de Febrero. Sin servicios de red: agua de
-  //   cisterna, luz solar, gas envasado, camino de tierra, sin cloaca.
-  //   Precio NO publicado online (lo maneja la inmobiliaria a consulta).
-  {
-    zona: "★ Cerro 20 de Febrero, camino a Valle Escondido (cerca Virgen del Cerro)",
-    m2: 2050, usd: null,
-    agua: "pozo", luz: "no", gas: "envasado", cloaca: "no", titulo: "posesion",
-    sector: "cerro", objetivo: true, estimacion: false,
-    link: "https://www.nuroa.com.ar/venta/terreno-valle-escondido-salta",
-    fuente: "Zonaprop / Nuroa",
-    notas: "EL LOTE OBJETIVO. Afuera del country, ladera con vista a la ciudad y el cerro. Agua de cisterna, luz solar (sin red), gas envasado, camino de tierra. Incluye quincho + 3 módulos. Precio a consultar (Alianza/Nikin). OJO: un portal lo ubica en La Isla/Cerrillos — verificar ubicación y título en persona."
-  },
-  // Ladera de Tres Cerritos subiendo al cerro, con escritura. Sin precio firme.
-  {
-    zona: "Tres Cerritos alto / ladera del cerro (Los Juncos 1100)",
-    m2: 430, usd: null,
-    agua: "?", luz: "?", gas: "?", cloaca: "no", titulo: "escritura",
-    sector: "cerro", estimacion: true,
-    link: "https://www.icasas.com.ar/venta/terrenos/salta/tres-cerritos",
-    fuente: "Argenprop / icasas",
-    notas: "Falda del cerro, ~22 m de frente, vista panorámica. Documentación lista para escriturar. Sin precio publicado; verificar servicios."
-  },
-  // Lote en ladera con vista premium — caro por m² (se paga la vista, no servicios).
-  {
-    zona: "Tres Cerritos, zona elevada / ladera (vista al valle)",
-    m2: 814, usd: 150000,
-    agua: "?", luz: "?", gas: "?", cloaca: "no", titulo: "escritura",
-    sector: "cerro", estimacion: false,
-    link: "https://www.icasas.com.ar/inmueble/1200-971c-198c6cc-54dc69877776-7dca",
-    fuente: "icasas",
-    notas: "Pendiente, vistas abiertas al valle, 38×21 m. ~184 USD/m²: caro, lo paga la vista. Servicios no especificados."
-  },
-  // Rural fuera de country (Vaqueros), agua de pozo, posesión — referencia banda baja.
-  {
-    zona: "Vaqueros (rural, sin servicios de red)",
-    m2: 1067, usd: 45000,
-    agua: "pozo", luz: "si", gas: "envasado", cloaca: "no", titulo: "posesion",
-    sector: "cerro", estimacion: false,
-    link: "https://www.icasas.com.ar/inmueble/76eb-be63-19d3362-37584e1ad9-7ac7",
-    fuente: "icasas",
-    notas: "Lote rural fuera de country (zona norte). Agua de pozo, en subdivisión catastral (sin título individual aún). ~42 USD/m². Referencia de tierra sin red."
-  },
-  // Loteo en falda oeste (Grand Bourg / Tres Cerritos), pendiente.
-  {
-    zona: "Loteo Mirador Oeste (falda, Grand Bourg / Tres Cerritos)",
-    m2: 400, usd: 45000,
-    agua: "?", luz: "?", gas: "?", cloaca: "no", titulo: "?",
-    sector: "cerro", estimacion: true,
-    link: "https://www.icasas.com.ar/inmueble/db88-8da4-19715d4-645d407e2d2a-721f",
-    fuente: "icasas / Adinco",
-    notas: "Loteo en pendiente sobre la falda oeste. ~113 USD/m². Confirmar servicios y título en el cuerpo del aviso."
-  },
-  // Estimación banda baja: posesión, servicios mínimos, más arriba.
-  {
-    zona: "Cerro, sector alto (estimación banda baja)",
-    m2: 1000, usd: 9000,
-    agua: "pozo", luz: "no", gas: "envasado", cloaca: "no", titulo: "posesion",
-    sector: "cerro", estimacion: true, link: "",
-    fuente: "Estimación propia",
-    notas: "Banda baja orientativa: orden de USD 5–12/m². Posesión/boleto, sin luz ni agua de red, pendiente fuerte."
-  },
-
-  // =====  CONTRASTE  ·  DENTRO de countries / con servicios de red  =====
-  // (No es la zona objetivo — sirve para ver el techo de precios con cloaca/gas.)
-
-  // Ejemplo donde el CUERPO confirma cloaca real (no solo el tag automático).
-  {
-    zona: "Valle Escondido (country) — cloaca CONFIRMADA en el texto",
-    m2: 2560, usd: 89600,
-    agua: "red", luz: "si", gas: "red", cloaca: "si", titulo: "escritura",
-    sector: "country", estimacion: false,
-    link: "https://www.argenprop.com/terreno-en-venta-en-valle-escondido--19731883",
-    fuente: "Argenprop",
-    notas: "El cuerpo dice textual: 'agua corriente, cloacas, electricidad, gas natural, fibra óptica'. Cloaca REAL, no tag. ~35 USD/m². Apto crédito."
-  },
-  {
-    zona: "Valle Escondido (country) — todos los servicios + amenities",
-    m2: 2525, usd: 140000,
-    agua: "red", luz: "si", gas: "red", cloaca: "?", titulo: "escritura",
-    sector: "country", estimacion: false,
-    link: "https://www.argenprop.com/terreno-en-venta-en-valle-escondido--17299103",
-    fuente: "Argenprop",
-    notas: "Lote 100% plano, golf/tenis/gym, 10' del centro, escritura inmediata. ~55 USD/m² (premium)."
-  },
-  {
-    zona: "Valle Escondido (country, club de campo) — 3.683 m²",
-    m2: 3683, usd: 82000,
-    agua: "?", luz: "si", gas: "red", cloaca: "?", titulo: "?",
-    sector: "country", estimacion: false,
-    link: "https://www.icasas.com.ar/inmueble/ecb0-bc43-62bd0fc7-28b77e449631-32e3",
-    fuente: "icasas",
-    notas: "Gas natural, alumbrado, seguridad 24h, club house, golf, tenis. ~22 USD/m². Cloaca/agua no detallados."
-  },
-  {
-    zona: "Country El Encón (zona Valle Escondido) — 2.095 m²",
-    m2: 2095, usd: 42000,
-    agua: "red", luz: "si", gas: "red", cloaca: "?", titulo: "escritura",
-    sector: "country", estimacion: false,
-    link: "https://www.icasas.com.ar/inmueble/b411-b63e-19bb64a-3333c884e130-7e20",
-    fuente: "icasas",
-    notas: "Country gated. Luz/gas/agua de red, listo para escriturar. ~20 USD/m². Cloaca no especificada."
-  },
-  {
-    zona: "Country Capiasu (camino San Agustín) — 2.538 m²",
-    m2: 2538, usd: 30000,
-    agua: "?", luz: "si", gas: "?", cloaca: "no", titulo: "boleto",
-    sector: "country", estimacion: false,
-    link: "https://www.icasas.com.ar/inmueble/7499-b576-292a988-bb4194ecc883-3b12",
-    fuente: "icasas",
-    notas: "Country económico, asfalto a 13 km. ~12 USD/m². Se transfiere por boleto. Gas/cloaca no mencionados."
-  },
-  {
-    zona: "Tres Cerritos consolidado — TODOS los servicios + cloaca (Ex Gob. Biella)",
-    m2: 583, usd: 105000,
-    agua: "red", luz: "si", gas: "red", cloaca: "si", titulo: "?",
-    sector: "country", estimacion: false,
-    link: "https://www.argenprop.com/terreno-en-venta-en-barrio-tres-cerritos--10317213",
-    fuente: "Argenprop",
-    notas: "Barrio urbano consolidado (no el cerro abierto). Agua/luz/gas/cloacas + pavimento, hermosa vista. ~180 USD/m². Muestra el techo: lote chico con todo cuesta caro por m²."
-  },
-];
-</script>
+<!-- ===========================  MINI-NAV STICKY  =========================== -->
+<nav class="mininav no-print sticky top-0 z-[500] bg-hueso/90 backdrop-blur border-b border-hueso2">
+  <div class="max-w-6xl mx-auto px-5 sm:px-8 h-12 flex items-center gap-4 overflow-x-auto text-sm font-medium text-tinta/80 whitespace-nowrap">
+    <span class="font-serif font-bold text-terraDark mr-1">Cerro de la Virgen</span>
+    <a href="#mapa">Mapa</a>
+    <a href="#tabla">Comparables</a>
+    <a href="#grafico">Grafico</a>
+    <a href="#calc">Calculadora</a>
+    <a href="#comparar">Comparar</a>
+    <a href="#normativa">Normativa</a>
+    <a href="#checklist">Checklist</a>
+    <button onclick="window.print()" class="ml-auto bg-cerro text-white rounded-full px-3 py-1 text-xs font-semibold hover:bg-cerroDark transition">Imprimir / PDF</button>
+  </div>
+</nav>
 
 <!-- ===========================  HERO  =========================== -->
 <header class="relative overflow-hidden bg-cerroDark text-hueso">
   <div class="absolute inset-0 ph-grad opacity-25"></div>
-  <div class="relative max-w-6xl mx-auto px-5 sm:px-8 pt-12 pb-14">
+  <div class="relative max-w-6xl mx-auto px-5 sm:px-8 pt-10 pb-14">
     <div class="flex items-center gap-2 text-ocreLight font-semibold tracking-widest text-xs uppercase mb-4">
       <span class="inline-block w-8 h-px bg-ocreLight"></span> Estudio de precios · uso personal
     </div>
@@ -227,21 +61,24 @@ const COMPARABLES = [
     </h1>
     <p class="max-w-2xl text-base sm:text-lg text-hueso/90 leading-relaxed">
       Terrenos sobre el camino a Valle Escondido, <strong>antes del country</strong>,
-      arriba del barrio Tres Cerritos — cercanías del Cerro 20 de Febrero y la
+      arriba del barrio Tres Cerritos, cercanias del Cerro 20 de Febrero y la
       Virgen del Cerro, Salta Capital.
     </p>
     <div class="flex flex-wrap items-center gap-x-6 gap-y-2 mt-6 text-sm">
       <span class="inline-flex items-center gap-2 bg-white/10 rounded-full px-3 py-1">
         <span class="w-2 h-2 rounded-full bg-ocreLight"></span>
-        Actualizado: <strong id="fecha-act">junio 2026</strong>
+        Actualizado: <strong id="fecha-act">s/d</strong>
+      </span>
+      <span class="inline-flex items-center gap-2 bg-white/10 rounded-full px-3 py-1">
+        Dolar <strong id="dolar-chip">s/d</strong>
       </span>
       <a href="#tabla" class="inline-flex items-center gap-2 bg-ocreLight text-cerroDark font-semibold rounded-full px-4 py-1 hover:bg-ocre transition">
-        Ver comparables ↓
+        Ver comparables
       </a>
     </div>
     <p class="mt-6 text-xs text-hueso/70 max-w-2xl border-l-2 border-ocreLight/60 pl-3">
-      <strong>Disclaimer:</strong> son precios de <em>publicación</em>, orientativos.
-      No es una tasación. Datos juntados a mano de portales inmobiliarios; verificá
+      <strong>Disclaimer:</strong> son precios de <em>publicacion</em>, orientativos.
+      No es una tasacion. Datos juntados a mano de portales inmobiliarios; verifica
       cada aviso antes de decidir.
     </p>
   </div>
@@ -250,180 +87,209 @@ const COMPARABLES = [
 <!-- ===========================  TESIS  =========================== -->
 <section class="max-w-6xl mx-auto px-5 sm:px-8 -mt-6 relative z-10">
   <div class="bg-terracota text-hueso rounded-2xl shadow-xl p-6 sm:p-8">
-    <h2 class="font-serif text-2xl sm:text-3xl font-semibold mb-2">La tesis, en una línea</h2>
+    <h2 class="font-serif text-2xl sm:text-3xl font-semibold mb-2">La tesis, en una linea</h2>
     <p class="text-base sm:text-lg leading-relaxed text-hueso/95">
-      En este sector, <strong>“sin cloaca” es el estado normal del lote</strong>: todo el
-      cerro va con pozo séptico, así que no hay un delta limpio con/sin cloaca.
+      En este sector, <strong>"sin cloaca" es el estado normal del lote</strong>: todo el
+      cerro va con pozo septico, asi que no hay un delta limpio con o sin cloaca.
       Lo que mueve el precio y el costo real de desarrollar es
       <strong class="underline decoration-ocreLight decoration-2 underline-offset-2">el agua y la luz</strong>,
-      no la cloaca. Una cámara séptica es barata y estándar; una perforación o un
-      tendido eléctrico puede costar más que el descuento que ganás por la falta de servicios.
+      no la cloaca. Una camara septica es barata y estandar; una perforacion o un
+      tendido electrico puede costar mas que el descuento que ganas por la falta de servicios.
     </p>
   </div>
 </section>
 
+<!-- ===========================  KPIs  =========================== -->
+<section class="max-w-6xl mx-auto px-5 sm:px-8 pt-10">
+  <div id="kpis" class="grid grid-cols-2 sm:grid-cols-4 gap-3 text-center"></div>
+</section>
+
+<!-- ===========================  BANDAS DE PRECIO  =========================== -->
+<section class="max-w-6xl mx-auto px-5 sm:px-8 pt-10">
+  <h2 class="font-serif text-2xl sm:text-3xl font-semibold mb-1">Bandas de precio</h2>
+  <p class="text-tinta/70 text-sm mb-6">USD por m2 (y ARS aprox. al dolar del dia). Las dos del cerro son la zona objetivo; el country es solo contraste.</p>
+  <div id="bandas" class="grid sm:grid-cols-3 gap-5"></div>
+</section>
+
 <!-- ===========================  MAPA  =========================== -->
-<section class="max-w-6xl mx-auto px-5 sm:px-8 py-12">
+<section id="mapa" class="max-w-6xl mx-auto px-5 sm:px-8 py-12">
   <div class="flex items-end justify-between mb-4 flex-wrap gap-2">
     <div>
-      <h2 class="font-serif text-2xl sm:text-3xl font-semibold">Ubicación</h2>
-      <p class="text-tinta/70 text-sm">La franja objetivo está afuera del country, sobre el cerro.</p>
+      <h2 class="font-serif text-2xl sm:text-3xl font-semibold">Ubicacion</h2>
+      <p class="text-tinta/70 text-sm">Cada comparable es un pin. Clic en un pin resalta su fila en la tabla.</p>
     </div>
     <div class="flex flex-wrap gap-3 text-xs">
-      <span class="inline-flex items-center gap-1.5"><span class="w-3 h-3 rounded-full bg-terracota"></span> Virgen del Cerro</span>
-      <span class="inline-flex items-center gap-1.5"><span class="w-3 h-3 rounded-full bg-cerro"></span> Country Valle Escondido</span>
-      <span class="inline-flex items-center gap-1.5"><span class="w-3 h-3 rounded-sm bg-ocre/60 border border-ocre"></span> Zona objetivo (aprox.)</span>
+      <span class="inline-flex items-center gap-1.5"><span class="w-3 h-3 rounded-full bg-terracota"></span> Cerro (objetivo)</span>
+      <span class="inline-flex items-center gap-1.5"><span class="w-3 h-3 rounded-full bg-cerro"></span> Country (contraste)</span>
+      <span class="inline-flex items-center gap-1.5"><span class="w-3 h-3 rounded-sm bg-ocre/60 border border-ocre"></span> Zona objetivo</span>
     </div>
   </div>
   <div class="bg-white rounded-xl shadow-md p-2 sm:p-3 border border-hueso2">
     <div id="map"></div>
   </div>
   <p class="text-xs text-tinta/60 mt-2">
-    Coordenadas aproximadas. El polígono de la zona objetivo es una referencia visual, no un límite catastral.
+    Coordenadas de los hitos (Virgen, country, Tres Cerritos) verificadas. Los pines de los avisos
+    estan colocados de forma <strong>aproximada</strong> por sector: los portales no publican la ubicacion exacta.
   </p>
 </section>
 
-<!-- ====================  RESUMEN DE PRECIOS  ==================== -->
+<!-- ===========================  GALERIA  =========================== -->
 <section class="max-w-6xl mx-auto px-5 sm:px-8 pb-12">
-  <h2 class="font-serif text-2xl sm:text-3xl font-semibold mb-1">Bandas de precio</h2>
-  <p class="text-tinta/70 text-sm mb-6">USD por m². Las dos del cerro son la zona objetivo; el country es solo contraste.</p>
-  <div class="grid sm:grid-cols-3 gap-5">
-
-    <!-- Card 1: country contraste -->
-    <div class="bg-white rounded-2xl border border-hueso2 shadow-sm p-6 flex flex-col">
-      <div class="text-xs font-semibold uppercase tracking-wide text-cerro mb-2">Contraste · no es la zona</div>
-      <h3 class="font-serif text-xl font-semibold mb-1">Dentro del country</h3>
-      <div class="font-serif text-4xl font-black text-cerroDark my-2">20–40 <span class="text-base font-sans font-medium text-tinta/50">USD/m²</span></div>
-      <ul class="text-sm text-tinta/75 space-y-1 mt-2 list-disc list-inside">
-        <li>Lotes 1.200–8.000 m²</li>
-        <li>Cloaca, gas, agua de red</li>
-        <li>Seguridad 24h + amenities</li>
-      </ul>
-    </div>
-
-    <!-- Card 2: cerro con servicios -->
-    <div class="bg-white rounded-2xl border-2 border-ocre shadow-md p-6 flex flex-col relative">
-      <span class="absolute -top-3 left-5 bg-ocre text-white text-[10px] font-bold uppercase tracking-wider px-2 py-1 rounded-full">Objetivo</span>
-      <div class="text-xs font-semibold uppercase tracking-wide text-terracota mb-2">Cerro · con servicios</div>
-      <h3 class="font-serif text-xl font-semibold mb-1">Escritura + luz + agua</h3>
-      <div class="font-serif text-4xl font-black text-terracota my-2">10–20 <span class="text-base font-sans font-medium text-tinta/50">USD/m²</span></div>
-      <ul class="text-sm text-tinta/75 space-y-1 mt-2 list-disc list-inside">
-        <li>Afuera del country</li>
-        <li>Luz + agua de red, escritura</li>
-        <li>Sin cloaca (pozo séptico = normal)</li>
-        <li class="text-tinta/50 italic">comps flojos · estimación</li>
-      </ul>
-    </div>
-
-    <!-- Card 3: cerro posesión -->
-    <div class="bg-white rounded-2xl border border-hueso2 shadow-sm p-6 flex flex-col">
-      <div class="text-xs font-semibold uppercase tracking-wide text-terracota mb-2">Cerro · posesión</div>
-      <h3 class="font-serif text-xl font-semibold mb-1">Boleto + servicios mínimos</h3>
-      <div class="font-serif text-4xl font-black text-cerroDark my-2">5–12 <span class="text-base font-sans font-medium text-tinta/50">USD/m²</span></div>
-      <ul class="text-sm text-tinta/75 space-y-1 mt-2 list-disc list-inside">
-        <li>Más arriba o pendiente fuerte</li>
-        <li>Posesión / boleto (no escritura)</li>
-        <li>Agua de pozo, sin luz de red</li>
-        <li class="text-tinta/50 italic">comps flojos · estimación</li>
-      </ul>
-    </div>
-  </div>
+  <h2 class="font-serif text-2xl sm:text-3xl font-semibold mb-4">La zona en fotos</h2>
+  <div id="galeria" class="grid grid-cols-2 sm:grid-cols-3 gap-3"></div>
 </section>
 
-<!-- ====================  GALERÍA DE FOTOS  ===================== -->
-<section class="max-w-6xl mx-auto px-5 sm:px-8 pb-12">
-  <h2 class="font-serif text-2xl sm:text-3xl font-semibold mb-4">La zona</h2>
-  <div id="galeria" class="grid grid-cols-2 sm:grid-cols-3 gap-3">
-    <!-- Las imágenes se inyectan por JS desde GALERIA[] (abajo). -->
-  </div>
-</section>
-
-<!-- ====================  TABLA COMPARABLES  ==================== -->
+<!-- ===========================  TABLA + SCORING  =========================== -->
 <section id="tabla" class="max-w-6xl mx-auto px-5 sm:px-8 pb-12">
   <h2 class="font-serif text-2xl sm:text-3xl font-semibold mb-1">Comparables</h2>
-  <p class="text-tinta/70 text-sm mb-4">Clic en los encabezados con ↕ para ordenar. USD/m² calculado automáticamente.</p>
+  <p class="text-tinta/70 text-sm mb-4">Clic en los encabezados para ordenar. Tilda hasta 3 lotes para compararlos abajo. USD/m2 y score calculados.</p>
 
   <!-- Filtros -->
-  <div class="flex flex-wrap gap-2 mb-4 text-sm">
-    <button data-filter="all"      class="filtro-btn px-3 py-1.5 rounded-full border border-cerro bg-cerro text-white font-medium">Todos</button>
-    <button data-filter="cerro"    class="filtro-btn px-3 py-1.5 rounded-full border border-cerro text-cerro font-medium">Solo cerro</button>
-    <button data-filter="country"  class="filtro-btn px-3 py-1.5 rounded-full border border-cerro text-cerro font-medium">Solo country</button>
+  <div class="flex flex-wrap gap-2 mb-3 text-sm no-print">
+    <button data-filter="all"       class="filtro-btn px-3 py-1.5 rounded-full border border-cerro bg-cerro text-white font-medium">Todos</button>
+    <button data-filter="cerro"     class="filtro-btn px-3 py-1.5 rounded-full border border-cerro text-cerro font-medium">Solo cerro</button>
+    <button data-filter="country"   class="filtro-btn px-3 py-1.5 rounded-full border border-cerro text-cerro font-medium">Solo country</button>
     <span class="w-px bg-hueso2 mx-1"></span>
     <button data-filter="escritura" class="filtro-btn px-3 py-1.5 rounded-full border border-terracota text-terracota font-medium">Con escritura</button>
-    <button data-filter="posesion"  class="filtro-btn px-3 py-1.5 rounded-full border border-terracota text-terracota font-medium">Posesión/boleto</button>
+    <button data-filter="posesion"  class="filtro-btn px-3 py-1.5 rounded-full border border-terracota text-terracota font-medium">Posesion/boleto</button>
     <span class="w-px bg-hueso2 mx-1"></span>
     <button data-filter="cloaca-si" class="filtro-btn px-3 py-1.5 rounded-full border border-ocre text-ocre font-medium">Con cloaca</button>
     <button data-filter="cloaca-no" class="filtro-btn px-3 py-1.5 rounded-full border border-ocre text-ocre font-medium">Sin cloaca</button>
   </div>
 
+  <!-- Panel de pesos del score -->
+  <details class="pesos-panel no-print bg-white border border-hueso2 rounded-xl mb-4 text-sm">
+    <summary class="cursor-pointer px-4 py-3 font-semibold text-terraDark select-none">Ajustar pesos del score de riesgo</summary>
+    <div class="grid sm:grid-cols-3 gap-4 px-4 pb-4">
+      <label class="block">Valor (precio) <span class="text-tinta/50" id="w-value-val">40%</span>
+        <input id="w-value" type="range" min="0" max="100" value="40" class="w-full" /></label>
+      <label class="block">Desarrollabilidad <span class="text-tinta/50" id="w-build-val">35%</span>
+        <input id="w-build" type="range" min="0" max="100" value="35" class="w-full" /></label>
+      <label class="block">Seguridad de titulo <span class="text-tinta/50" id="w-title-val">25%</span>
+        <input id="w-title" type="range" min="0" max="100" value="25" class="w-full" /></label>
+    </div>
+    <p class="px-4 pb-4 text-xs text-tinta/60">El score (0 a 100) pondera valor (inverso del USD/m2), desarrollabilidad (servicios + pendiente + acceso) y seguridad de titulo. Los pesos se normalizan solos.</p>
+  </details>
+
   <div class="overflow-x-auto bg-white rounded-xl border border-hueso2 shadow-sm">
-    <table class="w-full text-sm min-w-[860px]">
+    <table class="w-full text-sm min-w-[1000px]">
       <thead class="bg-hueso2/70 text-tinta/80 text-xs uppercase tracking-wide">
         <tr>
-          <th class="sortable text-left px-3 py-3" data-key="zona">Zona <span class="sort-arrow">↕</span></th>
-          <th class="sortable text-right px-3 py-3" data-key="m2">m² <span class="sort-arrow">↕</span></th>
-          <th class="sortable text-right px-3 py-3" data-key="usd">USD total <span class="sort-arrow">↕</span></th>
-          <th class="sortable text-right px-3 py-3 sort-active" data-key="usdm2">USD/m² <span class="sort-arrow">↕</span></th>
-          <th class="px-3 py-3 text-center">Agua</th>
-          <th class="px-3 py-3 text-center">Luz</th>
-          <th class="px-3 py-3 text-center">Gas</th>
-          <th class="px-3 py-3 text-center">Cloaca</th>
-          <th class="px-3 py-3 text-left">Título</th>
-          <th class="px-3 py-3 text-center">Link</th>
+          <th class="px-2 py-3 text-center no-print">Sel</th>
+          <th class="px-2 py-3 text-center">#</th>
+          <th class="sortable text-left px-3 py-3" data-key="zona">Zona <span class="sort-arrow">&#8597;</span></th>
+          <th class="sortable text-right px-3 py-3" data-key="m2">m2 <span class="sort-arrow">&#8597;</span></th>
+          <th class="sortable text-right px-3 py-3" data-key="usd">USD total <span class="sort-arrow">&#8597;</span></th>
+          <th class="sortable text-right px-3 py-3 sort-active" data-key="usdm2">USD/m2 <span class="sort-arrow">&#8597;</span></th>
+          <th class="sortable text-right px-3 py-3" data-key="ars">ARS/m2 <span class="sort-arrow">&#8597;</span></th>
+          <th class="px-2 py-3 text-center">Agua</th>
+          <th class="px-2 py-3 text-center">Luz</th>
+          <th class="px-2 py-3 text-center">Gas</th>
+          <th class="px-2 py-3 text-center">Cloaca</th>
+          <th class="px-2 py-3 text-center">Pend.</th>
+          <th class="px-3 py-3 text-left">Titulo</th>
+          <th class="sortable text-left px-3 py-3" data-key="score">Score <span class="sort-arrow">&#8597;</span></th>
+          <th class="px-3 py-3 text-center no-print">Link</th>
         </tr>
       </thead>
       <tbody id="tabla-body"></tbody>
     </table>
   </div>
   <p class="text-xs text-tinta/60 mt-2">
-    Filas con <span class="inline-block bg-ocreLight/40 text-terraDark font-semibold rounded px-1.5 py-0.5 text-[11px]">estimación</span>
-    son aproximaciones, no avisos verificados.
+    Filas con <span class="inline-block bg-ocreLight/40 text-terraDark font-semibold rounded px-1.5 py-0.5 text-[11px]">estimacion</span>
+    son aproximaciones, no avisos verificados. Cada fila muestra su fuente y fecha.
   </p>
 </section>
 
-<!-- ====================  CÓMO LEER LOS AVISOS  ================= -->
-<section class="max-w-6xl mx-auto px-5 sm:px-8 pb-12">
-  <div class="bg-cerroDark text-hueso rounded-2xl p-6 sm:p-8">
-    <h2 class="font-serif text-2xl sm:text-3xl font-semibold mb-4">Cómo leer los avisos</h2>
-    <div class="grid sm:grid-cols-3 gap-5 text-sm">
-      <div class="bg-white/10 rounded-xl p-4">
-        <div class="text-ocreLight font-bold mb-1">⚠ El tag de Argenprop miente</div>
-        <p class="text-hueso/90">“Servicios: Cloacas, Gas” suele ser un <strong>default automático</strong>.
-        No lo tomes como dato. Leé el cuerpo: la cloaca real aparece como
-        “desagüe cloacal”. Si dice “agua de pozo” o “gas envasado”, cloaca = NO.</p>
-      </div>
-      <div class="bg-white/10 rounded-xl p-4">
-        <div class="text-ocreLight font-bold mb-1">📍 Filtrá por zona, no por checkbox</div>
-        <p class="text-hueso/90">El filtro de servicios de los portales arrastra los tags falsos.
-        Filtrá por <strong>ubicación</strong> y leé cada aviso a mano; la mayoría del cerro
-        no tiene los servicios que el checkbox promete.</p>
-      </div>
-      <div class="bg-white/10 rounded-xl p-4">
-        <div class="text-ocreLight font-bold mb-1">📑 Matrícula vs posesión</div>
-        <p class="text-hueso/90">Buscá “matrícula” / “escritura” en el texto. Si dice
-        “posesión”, “boleto” o “derechos posesorios”, hay <strong>riesgo de título</strong>:
-        el precio bajo lo refleja.</p>
-      </div>
+<!-- ===========================  COMPARACION SHORTLIST  =========================== -->
+<section id="comparar" class="max-w-6xl mx-auto px-5 sm:px-8 pb-12">
+  <h2 class="font-serif text-2xl sm:text-3xl font-semibold mb-1">Comparacion lado a lado</h2>
+  <p class="text-tinta/70 text-sm mb-4">Tilda 2 o 3 lotes en la tabla para verlos enfrentados.</p>
+  <div id="comparar-panel" class="overflow-x-auto"></div>
+</section>
+
+<!-- ===========================  GRAFICO DE DISPERSION  =========================== -->
+<section id="grafico" class="max-w-6xl mx-auto px-5 sm:px-8 pb-12">
+  <div class="flex items-end justify-between mb-4 flex-wrap gap-2">
+    <div>
+      <h2 class="font-serif text-2xl sm:text-3xl font-semibold">Dispersion de precios</h2>
+      <p class="text-tinta/70 text-sm">Tamano del m2 contra USD/m2. Color por sector, forma por titulo.</p>
     </div>
+    <div class="flex gap-2 text-xs no-print">
+      <button id="chart-scatter" class="px-3 py-1.5 rounded-full bg-terracota text-white font-medium">Dispersion</button>
+      <button id="chart-hist" class="px-3 py-1.5 rounded-full border border-terracota text-terracota font-medium">Distribucion USD/m2</button>
+    </div>
+  </div>
+  <div class="bg-white rounded-xl border border-hueso2 shadow-sm p-4">
+    <div style="position:relative; height:380px;"><canvas id="chart"></canvas></div>
   </div>
 </section>
 
-<!-- ====================  PROS Y CONTRAS  ====================== -->
-<section class="max-w-6xl mx-auto px-5 sm:px-8 pb-12">
-  <h2 class="font-serif text-2xl sm:text-3xl font-semibold mb-6">Pros y contras</h2>
-  <div class="grid md:grid-cols-2 gap-5">
-    <div>
-      <h3 class="font-semibold text-cerro mb-3 flex items-center gap-2"><span class="text-xl">✓</span> A favor</h3>
-      <ul class="space-y-2" id="pros-list"></ul>
+<!-- ===========================  CALCULADORA  =========================== -->
+<section id="calc" class="max-w-6xl mx-auto px-5 sm:px-8 pb-12">
+  <div class="bg-white rounded-2xl border-2 border-ocre shadow-md overflow-hidden">
+    <div class="bg-ocre/15 px-6 py-4 border-b border-ocre/30">
+      <h2 class="font-serif text-2xl sm:text-3xl font-semibold text-terraDark">Calculadora de costo real</h2>
+      <p class="text-tinta/70 text-sm">El pago de la tesis: suma al precio del lote lo que cuesta llevarle agua, luz, septica y movimiento de suelo, y te da el <strong>USD/m2 efectivo</strong>.</p>
     </div>
-    <div>
-      <h3 class="font-semibold text-terracota mb-3 flex items-center gap-2"><span class="text-xl">✕</span> En contra</h3>
-      <ul class="space-y-2" id="contras-list"></ul>
+    <div class="grid lg:grid-cols-2 gap-0">
+      <!-- inputs -->
+      <div class="p-6 space-y-4 border-b lg:border-b-0 lg:border-r border-hueso2">
+        <div class="no-print">
+          <label class="text-sm font-semibold">Precargar un comparable</label>
+          <select id="calc-load" class="w-full mt-1 border border-hueso2 rounded-lg px-3 py-2 text-sm bg-hueso/40"></select>
+        </div>
+        <div class="grid grid-cols-2 gap-3">
+          <label class="text-sm font-semibold block">Superficie (m2)
+            <input id="calc-m2" type="number" min="1" value="2050" class="w-full mt-1 border border-hueso2 rounded-lg px-3 py-2 text-sm" /></label>
+          <label class="text-sm font-semibold block">Precio
+            <div class="flex mt-1">
+              <input id="calc-precio" type="number" min="0" value="12" class="w-full border border-hueso2 rounded-l-lg px-3 py-2 text-sm" />
+              <select id="calc-precio-modo" class="border border-l-0 border-hueso2 rounded-r-lg text-xs bg-hueso/40 px-1">
+                <option value="m2">USD/m2</option>
+                <option value="total">USD total</option>
+              </select>
+            </div></label>
+        </div>
+
+        <div class="bg-hueso/40 rounded-lg p-3 space-y-3">
+          <label class="flex items-center gap-2 text-sm font-semibold">
+            <input id="calc-agua-red" type="checkbox" class="w-4 h-4" /> El lote tiene agua de red</label>
+          <div id="calc-agua-box" class="grid grid-cols-2 gap-3">
+            <label class="text-xs block">Perforacion (m de profundidad)
+              <input id="calc-perf-m" type="number" min="0" value="55" class="w-full mt-1 border border-hueso2 rounded-lg px-2 py-1.5 text-sm" /></label>
+            <label class="text-xs block flex items-end gap-2 pb-1">
+              <input id="calc-aljibe" type="checkbox" class="w-4 h-4" /> Usar aljibe/cisterna en vez de perforar</label>
+          </div>
+        </div>
+
+        <div class="bg-hueso/40 rounded-lg p-3 space-y-3">
+          <label class="flex items-center gap-2 text-sm font-semibold">
+            <input id="calc-luz-lote" type="checkbox" class="w-4 h-4" /> El lote ya tiene luz</label>
+          <label id="calc-luz-box" class="text-xs block">Metros al ultimo poste
+            <input id="calc-poste-m" type="number" min="0" value="100" class="w-full mt-1 border border-hueso2 rounded-lg px-2 py-1.5 text-sm" /></label>
+        </div>
+
+        <div class="grid grid-cols-2 gap-3">
+          <label class="text-sm font-semibold block">Pendiente
+            <select id="calc-pend" class="w-full mt-1 border border-hueso2 rounded-lg px-3 py-2 text-sm bg-hueso/40">
+              <option value="plano">Plano</option>
+              <option value="suave">Suave</option>
+              <option value="fuerte" selected>Fuerte</option>
+            </select></label>
+          <label class="text-sm font-semibold block flex items-center gap-2 pt-7">
+            <input id="calc-septica" type="checkbox" class="w-4 h-4" checked /> Incluir camara septica</label>
+        </div>
+      </div>
+
+      <!-- output -->
+      <div id="calc-output" class="p-6 bg-cerroDark text-hueso"></div>
     </div>
   </div>
+  <p class="text-xs text-tinta/60 mt-2">Constantes de costo editables en <code>data.js</code> (objeto <code>costos</code>). Los items marcados VERIFICAR son estimaciones: pedi presupuestos locales.</p>
 </section>
 
-<!-- ====================  COSTO OCULTO  ======================== -->
+<!-- ===========================  COSTO OCULTO  =========================== -->
 <section class="max-w-6xl mx-auto px-5 sm:px-8 pb-12">
   <div class="bg-ocreLight/30 border border-ocre/40 rounded-2xl p-6 sm:p-8">
     <h2 class="font-serif text-2xl sm:text-3xl font-semibold mb-2 text-terraDark">El costo oculto de desarrollar</h2>
@@ -431,285 +297,103 @@ const COMPARABLES = [
       <strong>llevar agua y luz al lote</strong>. Comparalo antes de festejar un precio bajo.</p>
     <div class="grid sm:grid-cols-3 gap-4">
       <div class="bg-white rounded-xl p-5 border border-hueso2">
-        <div class="text-3xl mb-1">🚽</div>
-        <div class="font-semibold text-cerro">Cámara séptica</div>
-        <div class="font-serif text-2xl font-bold text-cerroDark my-1">Barato</div>
-        <p class="text-sm text-tinta/70">Estándar en todo el cerro. Es lo que “reemplaza” la cloaca. No mueve la aguja.</p>
+        <div class="text-3xl mb-1">&#128701;</div>
+        <div class="font-semibold text-cerro">Camara septica</div>
+        <div class="font-serif text-2xl font-bold text-cerroDark my-1" id="co-septica">s/d</div>
+        <p class="text-sm text-tinta/70">Estandar en todo el cerro. Es lo que reemplaza la cloaca. No mueve la aguja.</p>
       </div>
       <div class="bg-white rounded-xl p-5 border border-hueso2">
-        <div class="text-3xl mb-1">💧</div>
-        <div class="font-semibold text-terracota">Perforación de agua</div>
-        <div class="font-serif text-2xl font-bold text-terraDark my-1">Caro</div>
-        <p class="text-sm text-tinta/70">Si no hay agua de red, perforar puede costar más que el descuento del lote.</p>
+        <div class="text-3xl mb-1">&#128167;</div>
+        <div class="font-semibold text-terracota">Perforacion de agua</div>
+        <div class="font-serif text-2xl font-bold text-terraDark my-1" id="co-agua">s/d</div>
+        <p class="text-sm text-tinta/70">Si no hay agua de red, perforar puede costar mas que el descuento del lote.</p>
       </div>
       <div class="bg-white rounded-xl p-5 border border-hueso2">
-        <div class="text-3xl mb-1">⚡</div>
-        <div class="font-semibold text-terracota">Tendido eléctrico</div>
-        <div class="font-serif text-2xl font-bold text-terraDark my-1">Caro</div>
-        <p class="text-sm text-tinta/70">Acercar la luz desde el último poste se paga por metro. Preguntá la distancia real.</p>
+        <div class="text-3xl mb-1">&#9889;</div>
+        <div class="font-semibold text-terracota">Tendido electrico</div>
+        <div class="font-serif text-2xl font-bold text-terraDark my-1" id="co-luz">s/d</div>
+        <p class="text-sm text-tinta/70">Acercar la luz desde el ultimo poste se paga por metro. Pregunta la distancia real.</p>
       </div>
     </div>
     <p class="text-sm text-tinta/75 mt-5 bg-white/60 rounded-lg p-3 border border-ocre/30">
-      <strong>Regla práctica:</strong> antes de comparar dos lotes por USD/m², sumale a cada uno
-      el costo estimado de agua + luz. Un lote “barato” sin servicios puede terminar más caro que uno “caro” con red.
+      <strong>Regla practica:</strong> antes de comparar dos lotes por USD/m2, sumale a cada uno
+      el costo estimado de agua + luz. Un lote barato sin servicios puede terminar mas caro que uno caro con red.
     </p>
   </div>
 </section>
 
-<!-- ====================  FUENTES  ============================= -->
+<!-- ===========================  NORMATIVA  =========================== -->
+<section id="normativa" class="max-w-6xl mx-auto px-5 sm:px-8 pb-12">
+  <h2 class="font-serif text-2xl sm:text-3xl font-semibold mb-1">Normativa y factibilidad</h2>
+  <p class="text-tinta/70 text-sm mb-4">Lo que hay que confirmar en la reparticion. Items marcados TODO: sin dato firme online, llamar a la oficina indicada.</p>
+  <div id="normativa-list" class="grid md:grid-cols-2 gap-4"></div>
+</section>
+
+<!-- ===========================  CHECKLIST  =========================== -->
+<section id="checklist" class="max-w-6xl mx-auto px-5 sm:px-8 pb-12">
+  <div class="bg-white border border-hueso2 rounded-2xl p-6 sm:p-8 shadow-sm print-block">
+    <div class="flex items-center justify-between flex-wrap gap-2 mb-4">
+      <h2 class="font-serif text-2xl sm:text-3xl font-semibold">Checklist de visita</h2>
+      <button onclick="window.print()" class="no-print bg-cerro text-white rounded-full px-3 py-1.5 text-xs font-semibold hover:bg-cerroDark transition">Imprimir</button>
+    </div>
+    <ul id="checklist-list" class="grid sm:grid-cols-2 gap-x-8 gap-y-3 text-sm"></ul>
+  </div>
+</section>
+
+<!-- ===========================  COMO LEER LOS AVISOS  =========================== -->
+<section class="max-w-6xl mx-auto px-5 sm:px-8 pb-12">
+  <div class="bg-cerroDark text-hueso rounded-2xl p-6 sm:p-8">
+    <h2 class="font-serif text-2xl sm:text-3xl font-semibold mb-4">Como leer los avisos</h2>
+    <div class="grid sm:grid-cols-3 gap-5 text-sm">
+      <div class="bg-white/10 rounded-xl p-4">
+        <div class="text-ocreLight font-bold mb-1">El tag de Argenprop miente</div>
+        <p class="text-hueso/90">"Servicios: Cloacas, Gas" suele ser un <strong>default automatico</strong>.
+        No lo tomes como dato. Lee el cuerpo: la cloaca real aparece como
+        "desague cloacal". Si dice "agua de pozo" o "gas envasado", cloaca = NO.</p>
+      </div>
+      <div class="bg-white/10 rounded-xl p-4">
+        <div class="text-ocreLight font-bold mb-1">Filtra por zona, no por checkbox</div>
+        <p class="text-hueso/90">El filtro de servicios de los portales arrastra los tags falsos.
+        Filtra por <strong>ubicacion</strong> y lee cada aviso a mano; la mayoria del cerro
+        no tiene los servicios que el checkbox promete.</p>
+      </div>
+      <div class="bg-white/10 rounded-xl p-4">
+        <div class="text-ocreLight font-bold mb-1">Matricula vs posesion</div>
+        <p class="text-hueso/90">Busca "matricula" o "escritura" en el texto. Si dice
+        "posesion", "boleto" o "derechos posesorios", hay <strong>riesgo de titulo</strong>:
+        el precio bajo lo refleja.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===========================  PROS Y CONTRAS  =========================== -->
+<section class="max-w-6xl mx-auto px-5 sm:px-8 pb-12">
+  <h2 class="font-serif text-2xl sm:text-3xl font-semibold mb-6">Pros y contras</h2>
+  <div class="grid md:grid-cols-2 gap-5">
+    <div>
+      <h3 class="font-semibold text-cerro mb-3 flex items-center gap-2"><span class="text-xl">&#10003;</span> A favor</h3>
+      <ul class="space-y-2" id="pros-list"></ul>
+    </div>
+    <div>
+      <h3 class="font-semibold text-terracota mb-3 flex items-center gap-2"><span class="text-xl">&#10007;</span> En contra</h3>
+      <ul class="space-y-2" id="contras-list"></ul>
+    </div>
+  </div>
+</section>
+
+<!-- ===========================  FUENTES  =========================== -->
 <section class="max-w-6xl mx-auto px-5 sm:px-8 pb-16">
   <h2 class="font-serif text-2xl sm:text-3xl font-semibold mb-4">Fuentes</h2>
   <ul id="fuentes-list" class="grid sm:grid-cols-2 gap-2 text-sm"></ul>
 </section>
 
 <footer class="bg-cerroDark text-hueso/70 text-xs text-center py-6 px-5">
-  Estudio personal de apoyo a la decisión de compra · sin fines de publicación ·
-  precios de publicación, no tasación.
+  Estudio personal de apoyo a la decision de compra. Sin fines de publicacion.
+  Precios de publicacion, no tasacion.
 </footer>
 
-<!-- =============================================================== -->
-<!--  LÓGICA (JS vanilla)                                            -->
-<!-- =============================================================== -->
-<script>
-/* ----------  COORDENADAS DEL MAPA  ----------
-   Verificadas contra OpenStreetMap/Nominatim y GolfPass.
-   Si querés afinar, movelas a mano (lat, lng en decimal). */
-const COORD_VIRGEN  = [-24.759198, -65.384452]; // Santuario Virgen del Cerro (OSM, alta confianza)
-const COORD_COUNTRY = [-24.764967, -65.355386]; // Valle Escondido — cancha de golf (GolfPass)
-const COORD_TRES_C  = [-24.768420, -65.392610]; // Centro Barrio Tres Cerritos (OSM)
-
-/* Polígono aprox. de la zona objetivo: la ladera AFUERA del country, entre
-   Tres Cerritos / la Virgen y el acceso a Valle Escondido.
-   TODO: ajustá los vértices a mano si conocés los límites reales. */
-const ZONA_OBJETIVO = [
-  [-24.7600, -65.3835],
-  [-24.7605, -65.3705],
-  [-24.7680, -65.3625],
-  [-24.7705, -65.3730],
-  [-24.7660, -65.3835],
-];
-
-/* ----------  GALERÍA  ----------
-   src local en /assets. Si falla la carga, cae a placeholder con gradiente. */
-const GALERIA = [
-  { src: "assets/virgen-del-cerro.jpg",  alt: "Santuario de la Virgen del Cerro, Cerro 20 de Febrero, Salta", rotulo: "Virgen del Cerro" },
-  { src: "assets/cerro-ciudad.jpg",      alt: "Vista del cerro sobre la ciudad de Salta",                      rotulo: "Cerro sobre la ciudad" },
-  { src: "assets/tres-cerritos.jpg",     alt: "Imagen de la Virgen del Cerro, barrio Tres Cerritos, Salta",    rotulo: "Virgen · Tres Cerritos" },
-  { src: "assets/cerros-salta.jpg",      alt: "Panorámica de Salta desde la cima del cerro San Bernardo",      rotulo: "Salta desde el cerro" },
-  { src: "assets/valle-vista.jpg",       alt: "Vista panorámica de la ciudad de Salta y el valle de Lerma",    rotulo: "Panorámica de Salta" },
-  { src: "assets/camino-cerro.jpg",      alt: "Camino de ripio subiendo el cerro hacia Valle Escondido",       rotulo: "Camino al cerro" },
-];
-
-/* ----------  PROS / CONTRAS  ---------- */
-const PROS = [
-  "Vistas abiertas a la ciudad y los cerros.",
-  "A 10–15 min del centro de Salta.",
-  "Naturaleza y tranquilidad.",
-  "Precio de tierra bajo vs barrios consolidados.",
-  "Potencial de revalorización.",
-  "Posibilidad de lotes grandes.",
-];
-const CONTRAS = [
-  "Sin cloaca: pozo séptico obligado (igual, es lo normal acá).",
-  "Muchos lotes con agua de pozo y gas envasado → sube el costo de desarrollo.",
-  "Acceso a veces de ripio y con pendiente fuerte.",
-  "Mucho lote en posesión/boleto y no escritura → riesgo de título.",
-  "Posibles restricciones de construcción por zona de cerro y cercanía al santuario.",
-  "Tráfico de peregrinación los sábados a la Virgen del Cerro.",
-];
-
-/* ----------  FUENTES  ---------- */
-const FUENTES = [
-  { txt: "Nuroa — lote sobre Cerro 20 de Febrero, camino a Valle Escondido (lote objetivo)", url: "https://www.nuroa.com.ar/venta/terreno-valle-escondido-salta" },
-  { txt: "Zonaprop — quincho/cabaña y terreno 'Virgen del Cerro' (verificar ubicación real)", url: "https://www.zonaprop.com.ar/propiedades/clasificado/veclcain-quincho-cabana-y-terreno-en-virgen-del-cerro-salta-54526172.html" },
-  { txt: "icasas — terreno en ladera de Tres Cerritos, 814 m² con vista",     url: "https://www.icasas.com.ar/inmueble/1200-971c-198c6cc-54dc69877776-7dca" },
-  { txt: "icasas — lote rural en Vaqueros, agua de pozo (referencia sin red)", url: "https://www.icasas.com.ar/inmueble/76eb-be63-19d3362-37584e1ad9-7ac7" },
-  { txt: "icasas — Loteo Mirador Oeste (falda Grand Bourg / Tres Cerritos)",   url: "https://www.icasas.com.ar/inmueble/db88-8da4-19715d4-645d407e2d2a-721f" },
-  { txt: "Argenprop — Valle Escondido, cloaca CONFIRMADA en el cuerpo (~35 USD/m²)", url: "https://www.argenprop.com/terreno-en-venta-en-valle-escondido--19731883" },
-  { txt: "Argenprop — Valle Escondido, todos los servicios + amenities (~55 USD/m²)", url: "https://www.argenprop.com/terreno-en-venta-en-valle-escondido--17299103" },
-  { txt: "Argenprop — Tres Cerritos consolidado, todos los servicios (Ex Gob. Biella)", url: "https://www.argenprop.com/terreno-en-venta-en-barrio-tres-cerritos--10317213" },
-  { txt: "icasas — Country Valle Escondido club, 3.683 m²",       url: "https://www.icasas.com.ar/inmueble/ecb0-bc43-62bd0fc7-28b77e449631-32e3" },
-  { txt: "icasas — Country El Encón, 2.095 m²",                   url: "https://www.icasas.com.ar/inmueble/b411-b63e-19bb64a-3333c884e130-7e20" },
-  { txt: "icasas — Country Capiasu, 2.538 m² (por boleto)",       url: "https://www.icasas.com.ar/inmueble/7499-b576-292a988-bb4194ecc883-3b12" },
-  { txt: "icasas — índice terrenos Tres Cerritos, Salta",         url: "https://www.icasas.com.ar/venta/terrenos/salta/tres-cerritos" },
-  { txt: "icasas — índice terrenos Valle Escondido, Salta",       url: "https://www.icasas.com.ar/venta/terrenos/salta/valle-escondido" },
-  { txt: "Argenprop — índice terrenos Tres Cerritos, Salta",      url: "https://www.argenprop.com/terrenos/venta/br-tres-cerritos" },
-  { txt: "Zonaprop — índice terrenos Valle Escondido, Salta",     url: "https://www.zonaprop.com.ar/terrenos-valle-escondido-salta.html" },
-  { txt: "Fotos: Wikimedia Commons (CC0 / CC BY / CC BY-SA) — santuario y vistas de Salta", url: "https://commons.wikimedia.org/wiki/Category:Salta" },
-];
-
-/* ======================  RENDER  ====================== */
-
-// --- Iconos de servicio ---
-function iconAgua(v){ return v==='red'?'<span title="agua de red" class="text-cerro font-semibold">red</span>':v==='pozo'?'<span title="agua de pozo" class="text-terracota">pozo</span>':v==='no'?'<span class="text-tinta/40">—</span>':'<span class="text-tinta/40">?</span>'; }
-function iconLuz(v){ return v==='si'?'<span class="text-cerro font-bold">✓</span>':v==='no'?'<span class="text-tinta/40">—</span>':'<span class="text-tinta/40">?</span>'; }
-function iconGas(v){ return v==='red'?'<span title="gas natural" class="text-cerro font-semibold">red</span>':v==='envasado'?'<span title="gas envasado" class="text-ocre">env.</span>':v==='no'?'<span class="text-tinta/40">—</span>':'<span class="text-tinta/40">?</span>'; }
-function iconCloaca(v){ return v==='si'?'<span class="text-cerro font-bold">✓</span>':v==='no'?'<span class="text-terracota font-semibold">no</span>':'<span class="text-tinta/40">?</span>'; }
-function badgeTitulo(t){
-  const map = { escritura:['Escritura','bg-cerro/15 text-cerroDark'], posesion:['Posesión','bg-terracota/15 text-terraDark'], boleto:['Boleto','bg-terracota/15 text-terraDark'] };
-  const [txt,cls] = map[t] || ['?','bg-hueso2 text-tinta/50'];
-  return `<span class="text-[11px] font-semibold rounded px-1.5 py-0.5 ${cls}">${txt}</span>`;
-}
-
-let sortKey = 'usdm2';
-let sortDir = 1; // 1 asc, -1 desc
-let activeFilters = new Set();
-
-function rowUsdM2(c){ return (c.usd==null || !c.m2) ? null : Math.round(c.usd / c.m2); }
-
-function getRows(){
-  let rows = COMPARABLES.map(c => ({...c, usdm2: rowUsdM2(c)}));
-  // filtros
-  if (activeFilters.has('cerro'))     rows = rows.filter(r => r.sector==='cerro');
-  if (activeFilters.has('country'))   rows = rows.filter(r => r.sector==='country');
-  if (activeFilters.has('escritura')) rows = rows.filter(r => r.titulo==='escritura');
-  if (activeFilters.has('posesion'))  rows = rows.filter(r => r.titulo==='posesion' || r.titulo==='boleto');
-  if (activeFilters.has('cloaca-si')) rows = rows.filter(r => r.cloaca==='si');
-  if (activeFilters.has('cloaca-no')) rows = rows.filter(r => r.cloaca==='no');
-  // orden (los null —precio a consultar— siempre al final)
-  rows.sort((a,b) => {
-    let va=a[sortKey], vb=b[sortKey];
-    if (va==null && vb==null) return 0;
-    if (va==null) return 1;
-    if (vb==null) return -1;
-    if (typeof va==='string'){ return va.localeCompare(vb)*sortDir; }
-    return (va-vb)*sortDir;
-  });
-  // el lote objetivo queda fijado arriba (salvo que un filtro lo excluya)
-  const obj = rows.filter(r => r.objetivo);
-  const resto = rows.filter(r => !r.objetivo);
-  return [...obj, ...resto];
-}
-
-function renderTabla(){
-  const body = document.getElementById('tabla-body');
-  const rows = getRows();
-  if (!rows.length){ body.innerHTML = '<tr><td colspan="10" class="text-center text-tinta/50 py-6">Sin resultados con estos filtros.</td></tr>'; return; }
-  body.innerHTML = rows.map(c => {
-    const estim = c.estimacion ? '<span class="ml-1 inline-block bg-ocreLight/40 text-terraDark font-semibold rounded px-1.5 py-0.5 text-[10px] align-middle">estimación</span>' : '';
-    const link = c.link ? `<a href="${c.link}" target="_blank" rel="noopener" class="text-terracota hover:text-terraDark underline">ver</a>` : '<span class="text-tinta/30">—</span>';
-    const rowBg = c.objetivo ? 'bg-ocreLight/25' : (c.sector==='country' ? 'bg-cerro/5' : '');
-    const usdTxt   = c.usd==null   ? '<span class="text-tinta/40 italic">a consultar</span>' : '$'+c.usd.toLocaleString('es-AR');
-    const usdm2Txt = c.usdm2==null ? '<span class="text-tinta/40">s/d</span>' : c.usdm2.toLocaleString('es-AR');
-    return `<tr class="border-t border-hueso2 ${rowBg} hover:bg-hueso/60">
-      <td class="px-3 py-2.5">
-        <div class="font-medium leading-tight ${c.objetivo?'text-terraDark':''}">${c.zona}${estim}</div>
-        <div class="text-[11px] text-tinta/50">${c.fuente}${c.notas ? ' · '+c.notas.slice(0,70)+(c.notas.length>70?'…':'') : ''}</div>
-      </td>
-      <td class="px-3 py-2.5 text-right tabular-nums">${c.m2.toLocaleString('es-AR')}</td>
-      <td class="px-3 py-2.5 text-right tabular-nums">${usdTxt}</td>
-      <td class="px-3 py-2.5 text-right tabular-nums font-bold text-terracota">${usdm2Txt}</td>
-      <td class="px-3 py-2.5 text-center">${iconAgua(c.agua)}</td>
-      <td class="px-3 py-2.5 text-center">${iconLuz(c.luz)}</td>
-      <td class="px-3 py-2.5 text-center">${iconGas(c.gas)}</td>
-      <td class="px-3 py-2.5 text-center">${iconCloaca(c.cloaca)}</td>
-      <td class="px-3 py-2.5">${badgeTitulo(c.titulo)}</td>
-      <td class="px-3 py-2.5 text-center">${link}</td>
-    </tr>`;
-  }).join('');
-}
-
-// Encabezados sortables
-document.querySelectorAll('th.sortable').forEach(th => {
-  th.addEventListener('click', () => {
-    const k = th.dataset.key;
-    if (sortKey===k){ sortDir *= -1; } else { sortKey=k; sortDir=1; }
-    document.querySelectorAll('th.sortable').forEach(t => t.classList.remove('sort-active'));
-    th.classList.add('sort-active');
-    renderTabla();
-  });
-});
-
-// Filtros (toggle, con grupos mutuamente excluyentes)
-const GRUPOS = { sector:['cerro','country'], titulo:['escritura','posesion'], cloaca:['cloaca-si','cloaca-no'] };
-function grupoDe(f){ for (const g in GRUPOS) if (GRUPOS[g].includes(f)) return g; return null; }
-document.querySelectorAll('.filtro-btn').forEach(btn => {
-  btn.addEventListener('click', () => {
-    const f = btn.dataset.filter;
-    if (f==='all'){ activeFilters.clear(); }
-    else {
-      const g = grupoDe(f);
-      if (activeFilters.has(f)) activeFilters.delete(f);
-      else { GRUPOS[g].forEach(o => activeFilters.delete(o)); activeFilters.add(f); }
-    }
-    // estilos activos
-    document.querySelectorAll('.filtro-btn').forEach(b => {
-      const bf = b.dataset.filter;
-      const on = bf==='all' ? activeFilters.size===0 : activeFilters.has(bf);
-      b.classList.toggle('text-white', on);
-      // color de fondo según grupo
-      if (on){
-        if (bf==='all'||bf==='cerro'||bf==='country') b.classList.add('bg-cerro');
-        else if (bf==='escritura'||bf==='posesion') b.classList.add('bg-terracota');
-        else b.classList.add('bg-ocre');
-      } else {
-        b.classList.remove('bg-cerro','bg-terracota','bg-ocre','text-white');
-      }
-    });
-    renderTabla();
-  });
-});
-
-// --- Galería con fallback a placeholder ---
-function renderGaleria(){
-  const g = document.getElementById('galeria');
-  g.innerHTML = GALERIA.map((img,i) => {
-    const tall = i===0 ? 'sm:col-span-2 sm:row-span-2' : '';
-    return `<figure class="relative overflow-hidden rounded-xl shadow-sm ${tall} group">
-      <img src="${img.src}" alt="${img.alt}" loading="lazy"
-           class="w-full h-full object-cover ${i===0?'min-h-[220px] sm:min-h-[300px]':'h-32 sm:h-40'}"
-           onerror="const fig=this.parentElement; fig.classList.add('ph-grad','flex','items-center','justify-center','min-h-[8rem]'); const cap=fig.querySelector('figcaption'); if(cap) cap.classList.add('!relative','!bg-transparent','text-center'); this.remove();" />
-      <figcaption class="absolute bottom-0 inset-x-0 bg-gradient-to-t from-tinta/80 to-transparent text-hueso text-xs font-medium px-2 py-1.5">${img.rotulo}</figcaption>
-    </figure>`;
-  }).join('');
-}
-
-// --- Pros / contras / fuentes ---
-function renderListas(){
-  const li = (txt,cls) => `<li class="bg-white rounded-lg border border-hueso2 px-4 py-3 text-sm flex gap-2"><span class="${cls} font-bold flex-shrink-0">${cls.includes('cerro')?'✓':'✕'}</span><span>${txt}</span></li>`;
-  document.getElementById('pros-list').innerHTML    = PROS.map(t => li(t,'text-cerro')).join('');
-  document.getElementById('contras-list').innerHTML = CONTRAS.map(t => li(t,'text-terracota')).join('');
-  document.getElementById('fuentes-list').innerHTML = FUENTES.map(f =>
-    `<li><a href="${f.url}" target="_blank" rel="noopener" class="text-terracota hover:text-terraDark underline break-words">${f.txt}</a></li>`).join('');
-}
-
-// --- Mapa Leaflet ---
-function initMapa(){
-  const map = L.map('map', { scrollWheelZoom:false }).setView(
-    [(COORD_VIRGEN[0]+COORD_COUNTRY[0])/2, (COORD_VIRGEN[1]+COORD_COUNTRY[1])/2], 14);
-  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-    maxZoom: 19, attribution: '© OpenStreetMap'
-  }).addTo(map);
-
-  const pin = (color) => L.divIcon({
-    className:'', html:`<div style="width:18px;height:18px;border-radius:50% 50% 50% 0;background:${color};transform:rotate(-45deg);border:2px solid #fff;box-shadow:0 1px 4px rgba(0,0,0,.4)"></div>`,
-    iconSize:[18,18], iconAnchor:[9,18]
-  });
-
-  L.marker(COORD_VIRGEN,  {icon:pin('#B4502E')}).addTo(map).bindPopup('<strong>Virgen del Cerro</strong><br/>Cerro 20 de Febrero');
-  L.marker(COORD_COUNTRY, {icon:pin('#4F6B4A')}).addTo(map).bindPopup('<strong>Country Valle Escondido</strong><br/>(contraste, no es la zona objetivo)');
-  L.marker(COORD_TRES_C,  {icon:pin('#C98A2B')}).addTo(map).bindPopup('<strong>Tres Cerritos</strong><br/>barrio al pie del cerro');
-
-  // línea entre Virgen y country
-  L.polyline([COORD_VIRGEN, COORD_COUNTRY], {color:'#8A3A1F', weight:2, dashArray:'6 6'}).addTo(map);
-
-  // franja objetivo
-  L.polygon(ZONA_OBJETIVO, {color:'#C98A2B', weight:2, fillColor:'#C98A2B', fillOpacity:0.18}).addTo(map)
-    .bindPopup('Zona objetivo aprox.<br/>(afuera del country)');
-
-  // encuadrar
-  const grupo = L.featureGroup([
-    L.marker(COORD_VIRGEN), L.marker(COORD_COUNTRY), L.marker(COORD_TRES_C),
-    L.polygon(ZONA_OBJETIVO)
-  ]);
-  map.fitBounds(grupo.getBounds().pad(0.25));
-}
-
-// init
-renderTabla();
-renderGaleria();
-renderListas();
-window.addEventListener('load', initMapa);
-</script>
+<script src="data.js"></script>
+<script src="app.js"></script>
 </body>
 </html>
