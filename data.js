@@ -258,7 +258,7 @@ const DATA = {
       contras:["Lotes chicos: caro por m2 (~56 USD/m2)","Acceso de ripio","Expensas del barrio","Menos privacidad que un lote grande"] },
     { nivel:"C", titulo:"C · La Lucinda",
       pros:["Servicios completos + seguridad 24h","Escritura, titulo limpio","Lotes grandes: m2 mas barato del corredor","Plano, listo para construir"],
-      contras:["Ticket total alto (lotes de 2.500 a 6.100 m2)","Expensas de club de campo","Reglamento de construccion del barrio","Mas lejos del centro que Tres Cerritos"] },
+      contras:["Ticket total alto (lotes de 2.500 a 4.700 m2)","Expensas de club de campo","Reglamento de construccion del barrio","Mas lejos del centro que los barrios consolidados"] },
   ],
 
   /* ----------  NORMATIVA / FACTIBILIDAD  ----------
