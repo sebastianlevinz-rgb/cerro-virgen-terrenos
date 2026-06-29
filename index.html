@@ -4,7 +4,7 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <meta name="robots" content="noindex, nofollow" />
-<title>Cerro de la Virgen · Estudio de terrenos</title>
+<title>Corredor Acceso Norte · Estudio de terrenos</title>
 
 <!-- CDN: Tailwind, Leaflet (+OSM), Chart.js. Sin build, sin frameworks. -->
 <script src="https://cdn.tailwindcss.com"></script>
@@ -37,13 +37,13 @@
 <!-- ===========================  MINI-NAV STICKY  =========================== -->
 <nav class="mininav no-print sticky top-0 z-[500] bg-hueso/90 backdrop-blur border-b border-hueso2">
   <div class="max-w-6xl mx-auto px-5 sm:px-8 h-12 flex items-center gap-4 overflow-x-auto text-sm font-medium text-tinta/80 whitespace-nowrap">
-    <span class="font-serif font-bold text-terraDark mr-1">Cerro de la Virgen</span>
+    <span class="font-serif font-bold text-terraDark mr-1">Acceso Norte</span>
+    <a href="#niveles">Niveles</a>
     <a href="#mapa">Mapa</a>
     <a href="#tabla">Comparables</a>
     <a href="#grafico">Grafico</a>
     <a href="#calc">Calculadora</a>
     <a href="#comparar">Comparar</a>
-    <a href="#normativa">Normativa</a>
     <a href="#checklist">Checklist</a>
     <button onclick="window.print()" class="ml-auto bg-cerro text-white rounded-full px-3 py-1 text-xs font-semibold hover:bg-cerroDark transition">Imprimir / PDF</button>
   </div>
@@ -57,12 +57,12 @@
       <span class="inline-block w-8 h-px bg-ocreLight"></span> Estudio de precios · uso personal
     </div>
     <h1 class="font-serif font-black leading-[0.95] text-4xl sm:text-6xl mb-4">
-      Cerro de la Virgen,<br/><span class="text-ocreLight">estudio de terrenos</span>
+      Corredor Acceso Norte,<br/><span class="text-ocreLight">estudio de terrenos</span>
     </h1>
     <p class="max-w-2xl text-base sm:text-lg text-hueso/90 leading-relaxed">
-      Terrenos sobre el camino a Valle Escondido, <strong>antes del country</strong>,
-      arriba del barrio Tres Cerritos, cercanias del Cerro 20 de Febrero y la
-      Virgen del Cerro, Salta Capital.
+      Corredor Acceso Norte / camino a Valle Escondido: cerro antes del country
+      (Cerro 20 de Febrero, Virgen del Cerro), Barrio Privado El Portico y club de
+      campo La Lucinda Norte. Salta Capital.
     </p>
     <div class="flex flex-wrap items-center gap-x-6 gap-y-2 mt-6 text-sm">
       <span class="inline-flex items-center gap-2 bg-white/10 rounded-full px-3 py-1">
@@ -89,12 +89,16 @@
   <div class="bg-terracota text-hueso rounded-2xl shadow-xl p-6 sm:p-8">
     <h2 class="font-serif text-2xl sm:text-3xl font-semibold mb-2">La tesis, en una linea</h2>
     <p class="text-base sm:text-lg leading-relaxed text-hueso/95">
-      En este sector, <strong>"sin cloaca" es el estado normal del lote</strong>: todo el
-      cerro va con pozo septico, asi que no hay un delta limpio con o sin cloaca.
-      Lo que mueve el precio y el costo real de desarrollar es
+      En el <strong>cerro crudo (Nivel A)</strong>, "sin cloaca" es el estado normal del lote:
+      todo va con pozo septico, asi que no hay un delta limpio con o sin cloaca. Lo que
+      mueve el precio y el costo real de desarrollar ahi es
       <strong class="underline decoration-ocreLight decoration-2 underline-offset-2">el agua y la luz</strong>,
-      no la cloaca. Una camara septica es barata y estandar; una perforacion o un
-      tendido electrico puede costar mas que el descuento que ganas por la falta de servicios.
+      no la cloaca. Una camara septica es barata y estandar; una perforacion o un tendido
+      electrico puede costar mas que el descuento que ganas por la falta de servicios.
+    </p>
+    <p class="text-sm text-hueso/80 mt-3">
+      Ojo: esto aplica al Nivel A. <strong>El Portico (B)</strong> y <strong>La Lucinda (C)</strong>
+      ya vienen con servicios, asi que ahi el costo oculto casi no pesa: lo que se paga es el lote.
     </p>
   </div>
 </section>
@@ -104,11 +108,11 @@
   <div id="kpis" class="grid grid-cols-2 sm:grid-cols-4 gap-3 text-center"></div>
 </section>
 
-<!-- ===========================  BANDAS DE PRECIO  =========================== -->
-<section class="max-w-6xl mx-auto px-5 sm:px-8 pt-10">
-  <h2 class="font-serif text-2xl sm:text-3xl font-semibold mb-1">Bandas de precio</h2>
-  <p class="text-tinta/70 text-sm mb-6">USD por m2 (y ARS aprox. al dolar del dia). Las dos del cerro son la zona objetivo; el country es solo contraste.</p>
-  <div id="bandas" class="grid sm:grid-cols-3 gap-5"></div>
+<!-- ===========================  NIVELES / BANDAS  =========================== -->
+<section id="niveles" class="max-w-6xl mx-auto px-5 sm:px-8 pt-10">
+  <h2 class="font-serif text-2xl sm:text-3xl font-semibold mb-1">Tres niveles, una sola zona</h2>
+  <p class="text-tinta/70 text-sm mb-6">El mismo corredor, tres productos distintos. Cada nivel con su banda USD/m2 (y ARS aprox.) y su perfil de servicios.</p>
+  <div id="bandas" class="grid sm:grid-cols-2 lg:grid-cols-4 gap-4"></div>
 </section>
 
 <!-- ===========================  MAPA  =========================== -->
@@ -116,20 +120,16 @@
   <div class="flex items-end justify-between mb-4 flex-wrap gap-2">
     <div>
       <h2 class="font-serif text-2xl sm:text-3xl font-semibold">Ubicacion</h2>
-      <p class="text-tinta/70 text-sm">Cada comparable es un pin. Clic en un pin resalta su fila en la tabla.</p>
+      <p class="text-tinta/70 text-sm">Cada comparable es un pin, coloreado por nivel. Clic en un pin resalta su fila.</p>
     </div>
-    <div class="flex flex-wrap gap-3 text-xs">
-      <span class="inline-flex items-center gap-1.5"><span class="w-3 h-3 rounded-full bg-terracota"></span> Cerro (objetivo)</span>
-      <span class="inline-flex items-center gap-1.5"><span class="w-3 h-3 rounded-full bg-cerro"></span> Country (contraste)</span>
-      <span class="inline-flex items-center gap-1.5"><span class="w-3 h-3 rounded-sm bg-ocre/60 border border-ocre"></span> Zona objetivo</span>
-    </div>
+    <div id="map-legend" class="flex flex-wrap gap-3 text-xs"></div>
   </div>
   <div class="bg-white rounded-xl shadow-md p-2 sm:p-3 border border-hueso2">
     <div id="map"></div>
   </div>
   <p class="text-xs text-tinta/60 mt-2">
-    Coordenadas de los hitos (Virgen, country, Tres Cerritos) verificadas. Los pines de los avisos
-    estan colocados de forma <strong>aproximada</strong> por sector: los portales no publican la ubicacion exacta.
+    Coordenadas de los hitos (Virgen del Cerro, country Valle Escondido, accesos a El Portico y La Lucinda) verificadas.
+    Los pines de los avisos estan colocados de forma <strong>aproximada</strong> dentro de su zona: los portales no publican la ubicacion exacta del lote.
   </p>
 </section>
 
@@ -146,9 +146,11 @@
 
   <!-- Filtros -->
   <div class="flex flex-wrap gap-2 mb-3 text-sm no-print">
-    <button data-filter="all"       class="filtro-btn px-3 py-1.5 rounded-full border border-cerro bg-cerro text-white font-medium">Todos</button>
-    <button data-filter="cerro"     class="filtro-btn px-3 py-1.5 rounded-full border border-cerro text-cerro font-medium">Solo cerro</button>
-    <button data-filter="country"   class="filtro-btn px-3 py-1.5 rounded-full border border-cerro text-cerro font-medium">Solo country</button>
+    <button data-filter="all"        class="filtro-btn px-3 py-1.5 rounded-full border border-cerro bg-cerro text-white font-medium">Todos</button>
+    <button data-filter="nivel-A"    class="filtro-btn px-3 py-1.5 rounded-full border border-cerro text-cerro font-medium">A · Cerro crudo</button>
+    <button data-filter="nivel-B"    class="filtro-btn px-3 py-1.5 rounded-full border border-cerro text-cerro font-medium">B · El Portico</button>
+    <button data-filter="nivel-C"    class="filtro-btn px-3 py-1.5 rounded-full border border-cerro text-cerro font-medium">C · La Lucinda</button>
+    <button data-filter="nivel-X"    class="filtro-btn px-3 py-1.5 rounded-full border border-cerro text-cerro font-medium">Contraste</button>
     <span class="w-px bg-hueso2 mx-1"></span>
     <button data-filter="escritura" class="filtro-btn px-3 py-1.5 rounded-full border border-terracota text-terracota font-medium">Con escritura</button>
     <button data-filter="posesion"  class="filtro-btn px-3 py-1.5 rounded-full border border-terracota text-terracota font-medium">Posesion/boleto</button>
@@ -172,11 +174,12 @@
   </details>
 
   <div class="overflow-x-auto bg-white rounded-xl border border-hueso2 shadow-sm">
-    <table class="w-full text-sm min-w-[1000px]">
+    <table class="w-full text-sm min-w-[1040px]">
       <thead class="bg-hueso2/70 text-tinta/80 text-xs uppercase tracking-wide">
         <tr>
           <th class="px-2 py-3 text-center no-print">Sel</th>
           <th class="px-2 py-3 text-center">#</th>
+          <th class="px-2 py-3 text-center">Nivel</th>
           <th class="sortable text-left px-3 py-3" data-key="zona">Zona <span class="sort-arrow">&#8597;</span></th>
           <th class="sortable text-right px-3 py-3" data-key="m2">m2 <span class="sort-arrow">&#8597;</span></th>
           <th class="sortable text-right px-3 py-3" data-key="usd">USD total <span class="sort-arrow">&#8597;</span></th>
@@ -186,7 +189,6 @@
           <th class="px-2 py-3 text-center">Luz</th>
           <th class="px-2 py-3 text-center">Gas</th>
           <th class="px-2 py-3 text-center">Cloaca</th>
-          <th class="px-2 py-3 text-center">Pend.</th>
           <th class="px-3 py-3 text-left">Titulo</th>
           <th class="sortable text-left px-3 py-3" data-key="score">Score <span class="sort-arrow">&#8597;</span></th>
           <th class="px-3 py-3 text-center no-print">Link</th>
@@ -208,12 +210,12 @@
   <div id="comparar-panel" class="overflow-x-auto"></div>
 </section>
 
-<!-- ===========================  GRAFICO DE DISPERSION  =========================== -->
+<!-- ===========================  GRAFICO  =========================== -->
 <section id="grafico" class="max-w-6xl mx-auto px-5 sm:px-8 pb-12">
   <div class="flex items-end justify-between mb-4 flex-wrap gap-2">
     <div>
       <h2 class="font-serif text-2xl sm:text-3xl font-semibold">Dispersion de precios</h2>
-      <p class="text-tinta/70 text-sm">Tamano del m2 contra USD/m2. Color por sector, forma por titulo.</p>
+      <p class="text-tinta/70 text-sm">Superficie contra USD/m2. Color por nivel, tamano por precio total.</p>
     </div>
     <div class="flex gap-2 text-xs no-print">
       <button id="chart-scatter" class="px-3 py-1.5 rounded-full bg-terracota text-white font-medium">Dispersion</button>
@@ -230,21 +232,27 @@
   <div class="bg-white rounded-2xl border-2 border-ocre shadow-md overflow-hidden">
     <div class="bg-ocre/15 px-6 py-4 border-b border-ocre/30">
       <h2 class="font-serif text-2xl sm:text-3xl font-semibold text-terraDark">Calculadora de costo real</h2>
-      <p class="text-tinta/70 text-sm">El pago de la tesis: suma al precio del lote lo que cuesta llevarle agua, luz, septica y movimiento de suelo, y te da el <strong>USD/m2 efectivo</strong>.</p>
+      <p class="text-tinta/70 text-sm">El pago de la tesis: suma al precio del lote lo que cuesta llevarle agua, luz, septica y movimiento de suelo, y te da el <strong>USD/m2 efectivo</strong>. Pega fuerte en Nivel A; casi nada en B/C.</p>
     </div>
     <div class="grid lg:grid-cols-2 gap-0">
       <!-- inputs -->
       <div class="p-6 space-y-4 border-b lg:border-b-0 lg:border-r border-hueso2">
-        <div class="no-print">
-          <label class="text-sm font-semibold">Precargar un comparable</label>
-          <select id="calc-load" class="w-full mt-1 border border-hueso2 rounded-lg px-3 py-2 text-sm bg-hueso/40"></select>
+        <div class="grid grid-cols-2 gap-3 no-print">
+          <label class="text-sm font-semibold block">Precargar comparable
+            <select id="calc-load" class="w-full mt-1 border border-hueso2 rounded-lg px-3 py-2 text-sm bg-hueso/40"></select></label>
+          <label class="text-sm font-semibold block">Nivel de referencia
+            <select id="calc-nivel" class="w-full mt-1 border border-hueso2 rounded-lg px-3 py-2 text-sm bg-hueso/40">
+              <option value="A">A · Cerro crudo</option>
+              <option value="B">B · El Portico</option>
+              <option value="C">C · La Lucinda</option>
+            </select></label>
         </div>
         <div class="grid grid-cols-2 gap-3">
           <label class="text-sm font-semibold block">Superficie (m2)
-            <input id="calc-m2" type="number" min="1" value="2050" class="w-full mt-1 border border-hueso2 rounded-lg px-3 py-2 text-sm" /></label>
+            <input id="calc-m2" type="number" min="1" value="1995" class="w-full mt-1 border border-hueso2 rounded-lg px-3 py-2 text-sm" /></label>
           <label class="text-sm font-semibold block">Precio
             <div class="flex mt-1">
-              <input id="calc-precio" type="number" min="0" value="12" class="w-full border border-hueso2 rounded-l-lg px-3 py-2 text-sm" />
+              <input id="calc-precio" type="number" min="0" value="10" class="w-full border border-hueso2 rounded-l-lg px-3 py-2 text-sm" />
               <select id="calc-precio-modo" class="border border-l-0 border-hueso2 rounded-r-lg text-xs bg-hueso/40 px-1">
                 <option value="m2">USD/m2</option>
                 <option value="total">USD total</option>
@@ -258,7 +266,7 @@
           <div id="calc-agua-box" class="grid grid-cols-2 gap-3">
             <label class="text-xs block">Perforacion (m de profundidad)
               <input id="calc-perf-m" type="number" min="0" value="55" class="w-full mt-1 border border-hueso2 rounded-lg px-2 py-1.5 text-sm" /></label>
-            <label class="text-xs block flex items-end gap-2 pb-1">
+            <label class="text-xs flex items-end gap-2 pb-1">
               <input id="calc-aljibe" type="checkbox" class="w-4 h-4" /> Usar aljibe/cisterna en vez de perforar</label>
           </div>
         </div>
@@ -274,10 +282,10 @@
           <label class="text-sm font-semibold block">Pendiente
             <select id="calc-pend" class="w-full mt-1 border border-hueso2 rounded-lg px-3 py-2 text-sm bg-hueso/40">
               <option value="plano">Plano</option>
-              <option value="suave">Suave</option>
-              <option value="fuerte" selected>Fuerte</option>
+              <option value="suave" selected>Suave</option>
+              <option value="fuerte">Fuerte</option>
             </select></label>
-          <label class="text-sm font-semibold block flex items-center gap-2 pt-7">
+          <label class="text-sm font-semibold flex items-center gap-2 pt-7">
             <input id="calc-septica" type="checkbox" class="w-4 h-4" checked /> Incluir camara septica</label>
         </div>
       </div>
@@ -293,14 +301,15 @@
 <section class="max-w-6xl mx-auto px-5 sm:px-8 pb-12">
   <div class="bg-ocreLight/30 border border-ocre/40 rounded-2xl p-6 sm:p-8">
     <h2 class="font-serif text-2xl sm:text-3xl font-semibold mb-2 text-terraDark">El costo oculto de desarrollar</h2>
-    <p class="text-tinta/80 mb-6 max-w-3xl">El verdadero driver no es la cloaca: es
+    <p class="text-tinta/80 mb-6 max-w-3xl">Pega fuerte en el <strong>Nivel A (cerro crudo)</strong>, donde no hay servicios. En
+      <strong>El Portico</strong> y <strong>La Lucinda</strong> ya vienen agua y luz, asi que casi no aplica. El verdadero driver del cerro es
       <strong>llevar agua y luz al lote</strong>. Comparalo antes de festejar un precio bajo.</p>
     <div class="grid sm:grid-cols-3 gap-4">
       <div class="bg-white rounded-xl p-5 border border-hueso2">
         <div class="text-3xl mb-1">&#128701;</div>
         <div class="font-semibold text-cerro">Camara septica</div>
         <div class="font-serif text-2xl font-bold text-cerroDark my-1" id="co-septica">s/d</div>
-        <p class="text-sm text-tinta/70">Estandar en todo el cerro. Es lo que reemplaza la cloaca. No mueve la aguja.</p>
+        <p class="text-sm text-tinta/70">Estandar en el cerro. Es lo que reemplaza la cloaca. No mueve la aguja.</p>
       </div>
       <div class="bg-white rounded-xl p-5 border border-hueso2">
         <div class="text-3xl mb-1">&#128167;</div>
@@ -317,9 +326,16 @@
     </div>
     <p class="text-sm text-tinta/75 mt-5 bg-white/60 rounded-lg p-3 border border-ocre/30">
       <strong>Regla practica:</strong> antes de comparar dos lotes por USD/m2, sumale a cada uno
-      el costo estimado de agua + luz. Un lote barato sin servicios puede terminar mas caro que uno caro con red.
+      el costo estimado de agua + luz. Un lote crudo barato puede terminar mas caro que un lote con servicios.
     </p>
   </div>
+</section>
+
+<!-- ===========================  PROS Y CONTRAS POR NIVEL  =========================== -->
+<section class="max-w-6xl mx-auto px-5 sm:px-8 pb-12">
+  <h2 class="font-serif text-2xl sm:text-3xl font-semibold mb-2">Pros y contras por nivel</h2>
+  <p class="text-tinta/70 text-sm mb-6">No son lo mismo: el cerro crudo y La Lucinda juegan en ligas distintas.</p>
+  <div id="proscontras" class="grid md:grid-cols-3 gap-5"></div>
 </section>
 
 <!-- ===========================  NORMATIVA  =========================== -->
@@ -352,32 +368,15 @@
         "desague cloacal". Si dice "agua de pozo" o "gas envasado", cloaca = NO.</p>
       </div>
       <div class="bg-white/10 rounded-xl p-4">
-        <div class="text-ocreLight font-bold mb-1">Filtra por zona, no por checkbox</div>
-        <p class="text-hueso/90">El filtro de servicios de los portales arrastra los tags falsos.
-        Filtra por <strong>ubicacion</strong> y lee cada aviso a mano; la mayoria del cerro
-        no tiene los servicios que el checkbox promete.</p>
+        <div class="text-ocreLight font-bold mb-1">El Portico y La Lucinda no son lo mismo</div>
+        <p class="text-hueso/90">El Portico son <strong>lotes chicos</strong> (caros por m2). La Lucinda son
+        <strong>lotes grandes</strong> (m2 mas barato). No los compares solo por USD/m2 sin mirar el tamano.</p>
       </div>
       <div class="bg-white/10 rounded-xl p-4">
         <div class="text-ocreLight font-bold mb-1">Matricula vs posesion</div>
-        <p class="text-hueso/90">Busca "matricula" o "escritura" en el texto. Si dice
-        "posesion", "boleto" o "derechos posesorios", hay <strong>riesgo de titulo</strong>:
-        el precio bajo lo refleja.</p>
+        <p class="text-hueso/90">En el cerro crudo abunda la <strong>posesion</strong>. Busca "matricula" o
+        "escritura". Si dice "posesion", "boleto" o "derechos posesorios", hay riesgo de titulo.</p>
       </div>
-    </div>
-  </div>
-</section>
-
-<!-- ===========================  PROS Y CONTRAS  =========================== -->
-<section class="max-w-6xl mx-auto px-5 sm:px-8 pb-12">
-  <h2 class="font-serif text-2xl sm:text-3xl font-semibold mb-6">Pros y contras</h2>
-  <div class="grid md:grid-cols-2 gap-5">
-    <div>
-      <h3 class="font-semibold text-cerro mb-3 flex items-center gap-2"><span class="text-xl">&#10003;</span> A favor</h3>
-      <ul class="space-y-2" id="pros-list"></ul>
-    </div>
-    <div>
-      <h3 class="font-semibold text-terracota mb-3 flex items-center gap-2"><span class="text-xl">&#10007;</span> En contra</h3>
-      <ul class="space-y-2" id="contras-list"></ul>
     </div>
   </div>
 </section>

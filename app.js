@@ -1,12 +1,23 @@
 /* ===========================================================================
    app.js  ·  toda la logica (render + interaccion). JS vanilla.
    Lee de DATA (data.js). No toca localStorage.
+   Modelo de 3 niveles del corredor Acceso Norte:
+     A = cerro crudo · B = El Portico · C = La Lucinda · X = contraste (Valle Escondido)
    =========================================================================== */
 'use strict';
 
 const C = DATA.comparables;
 const COSTOS = DATA.costos;
 const DOLAR = DATA.dolar.valor;
+
+/* config de niveles: color (mapa/grafico), etiqueta */
+const NIVELES = {
+  A: { color:'#B4502E', label:'A · Cerro crudo' },
+  B: { color:'#C98A2B', label:'B · El Portico' },
+  C: { color:'#4F6B4A', label:'C · La Lucinda' },
+  X: { color:'#7A6A55', label:'Contraste (Valle Escondido)' },
+};
+function nivelColor(n){ return (NIVELES[n] || NIVELES.X).color; }
 
 /* numero de marcador estable (posicion en el dataset, no cambia al ordenar) */
 const NUM = {};
@@ -21,29 +32,26 @@ function usdM2(c){ return (c.usd == null || !c.m2) ? null : c.usd / c.m2; }
 /* ----------  scoring  ---------- */
 function valueScore(um2){
   if (um2 == null) return null;
-  const s = (200 - um2) / (200 - 10) * 100;   // 10 USD/m2 -> 100 ; 200 -> 0
+  const s = (60 - um2) / (60 - 5) * 100;   // 5 USD/m2 -> 100 ; 60 -> 0
   return Math.max(0, Math.min(100, s));
 }
 function buildScore(c){
   let s = 100;
-  s += ({ red:0, cerca:-10, no:-25 }[c.luz] ?? -15);      // luz es el driver fuerte
-  s += ({ red:0, pozo:-18, no:-30 }[c.agua] ?? -15);      // agua tambien
+  s += ({ red:0, cerca:-10, no:-25 }[c.luz] ?? -15);
+  s += ({ red:0, pozo:-18, no:-30 }[c.agua] ?? -15);
   s += ({ natural:0, envasado:-5, no:-8 }[c.gas] ?? -5);
   s += ({ plano:0, suave:-10, fuerte:-25 }[c.pendiente] ?? -10);
   s += ({ asfalto:0, ripio:-12 }[c.acceso] ?? -8);
-  s += (c.cloaca === true ? 2 : c.cloaca === false ? -3 : -3); // cloaca pesa poco (tesis)
+  s += (c.cloaca === true ? 2 : c.cloaca === false ? -3 : -3);
   return Math.max(0, Math.min(100, s));
 }
-function titleScore(c){
-  return ({ escritura:100, boleto:50, posesion:25 }[c.titulo]) ?? 40;
-}
+function titleScore(c){ return ({ escritura:100, boleto:50, posesion:25 }[c.titulo]) ?? 40; }
 let WEIGHTS = { value: 40, build: 35, title: 25 };
 function overallScore(c){
   const v = valueScore(usdM2(c)), b = buildScore(c), t = titleScore(c);
-  let wv = WEIGHTS.value, wb = WEIGHTS.build, wt = WEIGHTS.title;
   let parts = [];
-  if (v != null) parts.push([v, wv]);
-  parts.push([b, wb], [t, wt]);
+  if (v != null) parts.push([v, WEIGHTS.value]);
+  parts.push([b, WEIGHTS.build], [t, WEIGHTS.title]);
   const wsum = parts.reduce((a, p) => a + p[1], 0) || 1;
   const score = parts.reduce((a, p) => a + p[0] * p[1], 0) / wsum;
   return { score: Math.round(score), v: v == null ? null : Math.round(v), b: Math.round(b), t: Math.round(t) };
@@ -56,6 +64,10 @@ function lblGas(v){ return v==='natural'?['red','text-cerro font-semibold']:v===
 function lblCloaca(v){ return v===true?['si','text-cerro font-bold']:v===false?['no','text-terracota font-semibold']:['s/d','text-tinta/40']; }
 function lblPend(v){ return v==='plano'?['plano','text-cerro']:v==='suave'?['suave','text-ocre']:v==='fuerte'?['fuerte','text-terracota']:['s/d','text-tinta/40']; }
 function chip([txt, cls]){ return `<span class="${cls}">${txt}</span>`; }
+function badgeNivel(n){
+  const cl = { A:'bg-terracota/15 text-terraDark', B:'bg-ocre/20 text-ocre', C:'bg-cerro/15 text-cerroDark', X:'bg-tinta/10 text-tinta/60' }[n] || 'bg-hueso2';
+  return `<span class="text-[11px] font-bold rounded px-1.5 py-0.5 ${cl}">${n}</span>`;
+}
 function badgeTitulo(t){
   const m = { escritura:['Escritura','bg-cerro/15 text-cerroDark'], boleto:['Boleto','bg-terracota/15 text-terraDark'], posesion:['Posesion','bg-terracota/15 text-terraDark'] };
   const [txt, cls] = m[t] || ['s/d','bg-hueso2 text-tinta/50'];
@@ -66,7 +78,7 @@ function badgeTitulo(t){
 let sortKey = 'usdm2', sortDir = 1;
 let activeFilters = new Set();
 let shortlist = new Set();
-const GRUPOS = { sector:['cerro','country'], titulo:['escritura','posesion'], cloaca:['cloaca-si','cloaca-no'] };
+const GRUPOS = { nivel:['nivel-A','nivel-B','nivel-C','nivel-X'], titulo:['escritura','posesion'], cloaca:['cloaca-si','cloaca-no'] };
 
 function decorate(c){
   const um2 = usdM2(c);
@@ -74,8 +86,7 @@ function decorate(c){
 }
 function getRows(){
   let rows = C.map(decorate);
-  if (activeFilters.has('cerro'))     rows = rows.filter(r => r.sector==='cerro');
-  if (activeFilters.has('country'))   rows = rows.filter(r => r.sector==='country');
+  ['A','B','C','X'].forEach(n => { if (activeFilters.has('nivel-'+n)) rows = rows.filter(r => r.nivel===n); });
   if (activeFilters.has('escritura')) rows = rows.filter(r => r.titulo==='escritura');
   if (activeFilters.has('posesion'))  rows = rows.filter(r => r.titulo==='posesion' || r.titulo==='boleto');
   if (activeFilters.has('cloaca-si')) rows = rows.filter(r => r.cloaca===true);
@@ -100,8 +111,8 @@ function renderTabla(){
   body.innerHTML = rows.map(c => {
     const estim = c.esEstimacion ? '<span class="ml-1 inline-block bg-ocreLight/40 text-terraDark font-semibold rounded px-1.5 py-0.5 text-[10px] align-middle">estimacion</span>' : '';
     const link = c.url ? `<a href="${c.url}" target="_blank" rel="noopener" class="text-terracota hover:text-terraDark underline">ver</a>` : '<span class="text-tinta/30">s/d</span>';
-    const rowBg = c.objetivo ? 'bg-ocreLight/25' : (c.sector==='country' ? 'bg-cerro/5' : '');
-    const usdTxt = c.usd==null ? '<span class="text-tinta/40 italic">a consultar</span>' : fUSD(c.usd).replace('US$ ','$');
+    const rowBg = c.objetivo ? 'bg-ocreLight/25' : (c.nivel==='X' ? 'bg-tinta/[0.04]' : '');
+    const usdTxt = c.usd==null ? '<span class="text-tinta/40 italic">a consultar</span>' : '$'+nf.format(c.usd);
     const um2Txt = c.usdm2==null ? '<span class="text-tinta/40">s/d</span>' : nf.format(Math.round(c.usdm2));
     const arsTxt = c.ars==null ? '<span class="text-tinta/40">s/d</span>' : nf.format(Math.round(c.ars/1000)) + 'k';
     const sc = c._sc;
@@ -109,9 +120,10 @@ function renderTabla(){
     return `<tr data-id="${c.id}" class="comp-row border-t border-hueso2 ${rowBg} hover:bg-hueso/60">
       <td class="px-2 py-2.5 text-center no-print"><input type="checkbox" class="sl-check w-4 h-4" data-id="${c.id}" ${checked}></td>
       <td class="px-2 py-2.5 text-center text-tinta/50 font-semibold">${NUM[c.id]}</td>
+      <td class="px-2 py-2.5 text-center">${badgeNivel(c.nivel)}</td>
       <td class="px-3 py-2.5">
         <div class="font-medium leading-tight ${c.objetivo?'text-terraDark':''}">${c.objetivo?'&#9733; ':''}${c.zona}${estim}</div>
-        <div class="text-[11px] text-tinta/50">${c.fuente} · ${c.fecha}${c.calle && c.calle!=='s/d' ? ' · '+c.calle : ''}</div>
+        <div class="text-[11px] text-tinta/50">${c.fuente} · ${c.fecha}</div>
       </td>
       <td class="px-3 py-2.5 text-right tabular-nums">${nf.format(c.m2)}</td>
       <td class="px-3 py-2.5 text-right tabular-nums">${usdTxt}</td>
@@ -121,7 +133,6 @@ function renderTabla(){
       <td class="px-2 py-2.5 text-center">${chip(lblLuz(c.luz))}</td>
       <td class="px-2 py-2.5 text-center">${chip(lblGas(c.gas))}</td>
       <td class="px-2 py-2.5 text-center">${chip(lblCloaca(c.cloaca))}</td>
-      <td class="px-2 py-2.5 text-center text-xs">${chip(lblPend(c.pendiente))}</td>
       <td class="px-3 py-2.5">${badgeTitulo(c.titulo)}</td>
       <td class="px-3 py-2.5 w-[120px]">
         <div class="flex items-center gap-2">
@@ -137,14 +148,12 @@ function renderTabla(){
     </tr>`;
   }).join('');
 
-  // checkboxes shortlist
   body.querySelectorAll('.sl-check').forEach(ch => ch.addEventListener('change', e => {
     const id = e.target.dataset.id;
     if (e.target.checked){ if (shortlist.size >= 3){ e.target.checked = false; return; } shortlist.add(id); }
     else shortlist.delete(id);
     renderComparar();
   }));
-  // click en fila resalta su pin
   body.querySelectorAll('.comp-row').forEach(tr => tr.addEventListener('click', e => {
     if (e.target.closest('input,a')) return;
     focusPin(tr.dataset.id);
@@ -176,7 +185,7 @@ function wireFiltros(){
       b.classList.remove('bg-cerro','bg-terracota','bg-ocre','text-white');
       if (on){
         b.classList.add('text-white');
-        if (['all','cerro','country'].includes(bf)) b.classList.add('bg-cerro');
+        if (bf === 'all' || bf.startsWith('nivel')) b.classList.add('bg-cerro');
         else if (['escritura','posesion'].includes(bf)) b.classList.add('bg-terracota');
         else b.classList.add('bg-ocre');
       }
@@ -199,15 +208,14 @@ function wirePesos(){
 /* ===========================  KPIs + BANDAS  =========================== */
 function median(arr){ if(!arr.length) return null; const s=[...arr].sort((a,b)=>a-b); const m=Math.floor(s.length/2); return s.length%2?s[m]:(s[m-1]+s[m])/2; }
 function renderKpis(){
-  const cerro = C.filter(c => c.sector==='cerro');
-  const country = C.filter(c => c.sector==='country');
-  const medCerro = median(cerro.map(usdM2).filter(x => x!=null));
-  const medCountry = median(country.map(usdM2).filter(x => x!=null));
+  const conPrecio = C.filter(c => usdM2(c)!=null);
+  const lucinda = C.filter(c => c.nivel==='C').map(usdM2).filter(x=>x!=null);
+  const portico = C.filter(c => c.nivel==='B').map(usdM2).filter(x=>x!=null);
   const kpis = [
     { n: C.length, l: 'comparables' },
-    { n: cerro.length, l: 'en el cerro (objetivo)' },
-    { n: medCerro==null?'s/d':nf.format(Math.round(medCerro)), l: 'USD/m2 mediana cerro' },
-    { n: medCountry==null?'s/d':nf.format(Math.round(medCountry)), l: 'USD/m2 mediana country' },
+    { n: conPrecio.length, l: 'con precio publicado' },
+    { n: median(lucinda)==null?'s/d':nf.format(Math.round(median(lucinda))), l: 'USD/m2 mediana La Lucinda' },
+    { n: median(portico)==null?'s/d':nf.format(Math.round(median(portico))), l: 'USD/m2 mediana El Portico' },
   ];
   document.getElementById('kpis').innerHTML = kpis.map(k =>
     `<div class="bg-white rounded-xl border border-hueso2 p-4 shadow-sm">
@@ -216,24 +224,18 @@ function renderKpis(){
      </div>`).join('');
 }
 function renderBandas(){
-  const b = DATA.bandas;
-  const cards = [
-    { d: b.country, sub:'Contraste, no es la zona', cls:'border-hueso2', titulo:'Dentro del country',
-      li:['Lotes 1.200 a 8.000 m2','Cloaca, gas, agua de red','Seguridad 24h + amenities'] },
-    { d: b.cerroServicios, sub:'Cerro con servicios', cls:'border-2 border-ocre', objetivo:true, titulo:'Escritura + luz + agua',
-      li:['Afuera del country','Luz + agua de red, escritura','Sin cloaca (pozo septico = normal)','comps flojos, estimacion'] },
-    { d: b.cerroPosesion, sub:'Cerro posesion', cls:'border-hueso2', titulo:'Boleto + servicios minimos',
-      li:['Mas arriba o pendiente fuerte','Posesion / boleto (no escritura)','Agua de pozo, sin luz de red','comps flojos, estimacion'] },
-  ];
-  document.getElementById('bandas').innerHTML = cards.map(c => {
-    const arsMin = nf.format(Math.round(c.d.min*DOLAR/1000)), arsMax = nf.format(Math.round(c.d.max*DOLAR/1000));
-    return `<div class="bg-white rounded-2xl ${c.cls} shadow-sm p-6 flex flex-col relative">
-      ${c.objetivo?'<span class="absolute -top-3 left-5 bg-ocre text-white text-[10px] font-bold uppercase tracking-wider px-2 py-1 rounded-full">Objetivo</span>':''}
-      <div class="text-xs font-semibold uppercase tracking-wide ${c.objetivo?'text-terracota':'text-cerro'} mb-2">${c.sub}</div>
-      <h3 class="font-serif text-xl font-semibold mb-1">${c.titulo}</h3>
-      <div class="font-serif text-4xl font-black ${c.objetivo?'text-terracota':'text-cerroDark'} my-2">${c.d.min} a ${c.d.max} <span class="text-base font-sans font-medium text-tinta/50">USD/m2</span></div>
+  document.getElementById('bandas').innerHTML = DATA.bandas.map(b => {
+    const arsMin = nf.format(Math.round(b.min*DOLAR/1000)), arsMax = nf.format(Math.round(b.max*DOLAR/1000));
+    const col = nivelColor(b.nivel);
+    return `<div class="bg-white rounded-2xl border shadow-sm p-5 flex flex-col" style="border-color:${col}55;border-top:4px solid ${col}">
+      <div class="flex items-center gap-2 mb-1">
+        <span class="text-xs font-bold rounded px-1.5 py-0.5" style="background:${col}22;color:${col}">${b.nivel}</span>
+        <span class="text-xs font-semibold uppercase tracking-wide text-tinta/60">${b.tag}</span>
+      </div>
+      <h3 class="font-serif text-lg font-semibold mb-1">${b.titulo}</h3>
+      <div class="font-serif text-3xl font-black my-1" style="color:${col}">${b.min} a ${b.max} <span class="text-sm font-sans font-medium text-tinta/50">USD/m2</span></div>
       <div class="text-xs text-tinta/50 mb-2">aprox. $${arsMin}k a $${arsMax}k ARS/m2</div>
-      <ul class="text-sm text-tinta/75 space-y-1 mt-1 list-disc list-inside">${c.li.map(x=>`<li>${x}</li>`).join('')}</ul>
+      <ul class="text-xs text-tinta/75 space-y-1 mt-1 list-disc list-inside">${b.li.map(x=>`<li>${x}</li>`).join('')}</ul>
     </div>`;
   }).join('');
 }
@@ -250,10 +252,21 @@ function renderGaleria(){
     </figure>`;
   }).join('');
 }
+function renderProsContras(){
+  document.getElementById('proscontras').innerHTML = DATA.proscontras.map(pc => {
+    const col = nivelColor(pc.nivel);
+    return `<div class="bg-white rounded-2xl border border-hueso2 shadow-sm overflow-hidden">
+      <div class="px-5 py-3 text-white font-serif text-lg font-semibold" style="background:${col}">${pc.titulo}</div>
+      <div class="p-5 space-y-3 text-sm">
+        <div><div class="font-semibold text-cerro mb-1">A favor</div>
+          <ul class="space-y-1">${pc.pros.map(t=>`<li class="flex gap-2"><span class="text-cerro font-bold">✓</span><span>${t}</span></li>`).join('')}</ul></div>
+        <div><div class="font-semibold text-terracota mb-1">En contra</div>
+          <ul class="space-y-1">${pc.contras.map(t=>`<li class="flex gap-2"><span class="text-terracota font-bold">✗</span><span>${t}</span></li>`).join('')}</ul></div>
+      </div>
+    </div>`;
+  }).join('');
+}
 function renderListas(){
-  const li = (txt, ok) => `<li class="bg-white rounded-lg border border-hueso2 px-4 py-3 text-sm flex gap-2"><span class="${ok?'text-cerro':'text-terracota'} font-bold flex-shrink-0">${ok?'✓':'✗'}</span><span>${txt}</span></li>`;
-  document.getElementById('pros-list').innerHTML = DATA.pros.map(t => li(t, true)).join('');
-  document.getElementById('contras-list').innerHTML = DATA.contras.map(t => li(t, false)).join('');
   document.getElementById('fuentes-list').innerHTML = DATA.fuentes.map(f =>
     `<li><a href="${f.url}" target="_blank" rel="noopener" class="text-terracota hover:text-terraDark underline break-words">${f.txt}</a> <span class="text-tinta/40 text-xs">(${f.fecha})</span></li>`).join('');
   document.getElementById('checklist-list').innerHTML = DATA.checklist.map(t =>
@@ -286,7 +299,7 @@ function renderHero(){
 /* ===========================  MAPA  =========================== */
 let MAP, MARKERS = {};
 function pinHtml(c){
-  const bg = c.sector==='cerro' ? '#B4502E' : '#4F6B4A';
+  const bg = nivelColor(c.nivel);
   const bstyle = c.titulo==='escritura' ? 'solid' : (c.titulo==='posesion'||c.titulo==='boleto') ? 'dashed' : 'dotted';
   const ring = c.objetivo ? 'box-shadow:0 0 0 3px #E3B765,0 1px 4px rgba(0,0,0,.4);' : 'box-shadow:0 1px 4px rgba(0,0,0,.4);';
   return `<div class="pin-num" style="background:${bg};border:2px ${bstyle} #fff;${ring}"><span>${NUM[c.id]}</span></div>`;
@@ -298,6 +311,10 @@ function focusPin(id){
   const tr = document.querySelector(`tr.comp-row[data-id="${id}"]`);
   if (tr) tr.scrollIntoView({ behavior:'smooth', block:'center' });
 }
+function renderLegend(){
+  document.getElementById('map-legend').innerHTML = ['A','B','C','X'].map(n =>
+    `<span class="inline-flex items-center gap-1.5"><span class="w-3 h-3 rounded-full" style="background:${NIVELES[n].color}"></span> ${NIVELES[n].label}</span>`).join('');
+}
 function initMapa(){
   const co = DATA.coords;
   MAP = L.map('map', { scrollWheelZoom:false }).setView([co.virgen.lat, co.virgen.lng], 14);
@@ -305,11 +322,12 @@ function initMapa(){
 
   const hito = (color) => L.divIcon({ className:'', iconSize:[16,16], iconAnchor:[8,16],
     html:`<div style="width:16px;height:16px;border-radius:50% 50% 50% 0;background:${color};transform:rotate(-45deg);border:2px solid #fff;box-shadow:0 1px 4px rgba(0,0,0,.5)"></div>` });
-  L.marker([co.virgen.lat, co.virgen.lng], { icon:hito('#8A3A1F') }).addTo(MAP).bindPopup('<strong>'+co.virgen.label+'</strong>');
-  L.marker([co.country.lat, co.country.lng], { icon:hito('#34492F') }).addTo(MAP).bindPopup('<strong>'+co.country.label+'</strong><br/>contraste, no es la zona objetivo');
-  L.marker([co.tresC.lat, co.tresC.lng], { icon:hito('#C98A2B') }).addTo(MAP).bindPopup('<strong>'+co.tresC.label+'</strong>');
-  L.polyline([[co.virgen.lat,co.virgen.lng],[co.country.lat,co.country.lng]], { color:'#8A3A1F', weight:2, dashArray:'6 6' }).addTo(MAP);
-  L.polygon(DATA.zonaObjetivo, { color:'#C98A2B', weight:2, fillColor:'#C98A2B', fillOpacity:0.15 }).addTo(MAP).bindPopup('Zona objetivo aprox.');
+  const refs = [];
+  Object.values(co).forEach(h => {
+    L.marker([h.lat, h.lng], { icon:hito('#2A211A') }).addTo(MAP).bindPopup('<strong>'+h.label+'</strong>');
+    refs.push([h.lat, h.lng]);
+  });
+  if (DATA.zonaObjetivo) L.polygon(DATA.zonaObjetivo, { color:'#C98A2B', weight:2, fillColor:'#C98A2B', fillOpacity:0.12 }).addTo(MAP).bindPopup('Zona objetivo aprox. (cerro crudo)');
 
   C.forEach(c => {
     if (!c.coord) return;
@@ -321,34 +339,31 @@ function initMapa(){
     MARKERS[c.id] = m;
   });
 
-  // encuadrar a los hitos principales (sin estirar a Vaqueros/oeste lejanos)
-  MAP.fitBounds(L.latLngBounds([[co.virgen.lat,co.virgen.lng],[co.country.lat,co.country.lng],[co.tresC.lat,co.tresC.lng]]).pad(0.5));
+  MAP.fitBounds(L.latLngBounds(refs).pad(0.4));
 }
 
 /* ===========================  GRAFICO  =========================== */
 let CHART, chartMode = 'scatter';
 function buildScatter(){
   const pts = C.filter(c => usdM2(c)!=null);
-  const mk = (sector) => pts.filter(c => c.sector===sector).map(c => ({ x:c.m2, y:Math.round(usdM2(c)), id:c.id,
+  const mk = (n) => pts.filter(c => c.nivel===n).map(c => ({ x:c.m2, y:Math.round(usdM2(c)), id:c.id,
     r: Math.max(5, Math.min(22, Math.sqrt((c.usd||0))/40)), titulo:c.titulo, zona:c.zona }));
   const ptStyle = (arr) => arr.map(p => (p.titulo==='escritura')?'circle':(p.titulo==='posesion'||p.titulo==='boleto')?'triangle':'rectRot');
-  const cerro = mk('cerro'), country = mk('country');
+  const ds = (n, lbl) => { const arr = mk(n); return { label:lbl, data:arr,
+    backgroundColor: nivelColor(n)+'b0', borderColor: nivelColor(n), pointStyle:ptStyle(arr), radius:arr.map(p=>p.r), hoverRadius:arr.map(p=>p.r+2) }; };
   return {
     type:'scatter',
-    data:{ datasets:[
-      { label:'Cerro (objetivo)', data:cerro, backgroundColor:'rgba(180,80,46,.65)', borderColor:'#8A3A1F', pointStyle:ptStyle(cerro), radius:cerro.map(p=>p.r), hoverRadius:cerro.map(p=>p.r+2) },
-      { label:'Country (contraste)', data:country, backgroundColor:'rgba(79,107,74,.6)', borderColor:'#34492F', pointStyle:ptStyle(country), radius:country.map(p=>p.r), hoverRadius:country.map(p=>p.r+2) },
-    ]},
+    data:{ datasets:[ ds('A','A · Cerro crudo'), ds('B','B · El Portico'), ds('C','C · La Lucinda'), ds('X','Contraste') ] },
     options:{ maintainAspectRatio:false,
       scales:{ x:{ title:{display:true,text:'Superficie (m2)'} }, y:{ title:{display:true,text:'USD / m2'} } },
       plugins:{ legend:{ position:'top' },
         tooltip:{ callbacks:{ label:(ctx)=>{ const p=ctx.raw; return `${p.zona}: ${nf.format(p.x)} m2, US$ ${p.y}/m2`; },
-          afterLabel:(ctx)=> 'forma = titulo (circulo escritura, triangulo posesion)' } } } }
+          afterLabel:()=> 'forma = titulo (circulo escritura, triangulo posesion)' } } } }
   };
 }
 function buildHist(){
   const vals = C.map(usdM2).filter(x=>x!=null);
-  const buckets = [ [0,12], [12,20], [20,40], [40,100], [100,300] ];
+  const buckets = [ [0,12], [12,20], [20,30], [30,45], [45,70] ];
   const labels = buckets.map(b => b[0]+' a '+b[1]);
   const counts = buckets.map(b => vals.filter(v => v>=b[0] && v<b[1]).length);
   return { type:'bar',
@@ -372,6 +387,7 @@ function wireChart(){
 }
 
 /* ===========================  CALCULADORA  =========================== */
+function bandaDe(nivel){ return DATA.bandas.find(b => b.nivel===nivel) || DATA.bandas.find(b => b.nivel==='A'); }
 function calcCompute(){
   const m2 = +document.getElementById('calc-m2').value || 0;
   const precio = +document.getElementById('calc-precio').value || 0;
@@ -383,8 +399,8 @@ function calcCompute(){
   const posteM = +document.getElementById('calc-poste-m').value || 0;
   const pend = document.getElementById('calc-pend').value;
   const conSeptica = document.getElementById('calc-septica').checked;
+  const nivel = document.getElementById('calc-nivel').value;
 
-  // mostrar/ocultar sub-boxes
   document.getElementById('calc-agua-box').style.display = aguaRed ? 'none' : '';
   document.getElementById('calc-luz-box').style.display = luzLote ? 'none' : '';
   document.getElementById('calc-perf-m').disabled = aljibe;
@@ -403,12 +419,11 @@ function calcCompute(){
   const total = adq + desarrollo;
   const efectivo = m2 ? total/m2 : 0;
 
-  // veredicto vs bandas
-  const b = DATA.bandas;
+  const b = bandaDe(nivel);
   let vd, vcls;
-  if (efectivo <= b.cerroServicios.max){ vd = `US$ ${Math.round(efectivo)}/m2 efectivo: dentro de la banda cerro con servicios (${b.cerroServicios.min} a ${b.cerroServicios.max}). Buen numero.`; vcls='bg-cerro'; }
-  else if (efectivo <= b.country.max){ vd = `US$ ${Math.round(efectivo)}/m2 efectivo: quedo en rango country (${b.country.min} a ${b.country.max}). El desarrollo se comio el descuento del cerro.`; vcls='bg-ocre'; }
-  else { vd = `US$ ${Math.round(efectivo)}/m2 efectivo: por encima del country. Carisimo para lo que es: el costo oculto domina.`; vcls='bg-terracota'; }
+  if (efectivo <= b.max){ vd = `US$ ${Math.round(efectivo)}/m2 efectivo entra en la banda del nivel ${nivel} (${b.min} a ${b.max} USD/m2). Numero sano para ${b.titulo}.`; vcls='bg-cerro'; }
+  else if (efectivo <= b.max*1.4){ vd = `US$ ${Math.round(efectivo)}/m2 efectivo quedo por encima de la banda del nivel ${nivel} (${b.min} a ${b.max}). El desarrollo se comio buena parte del descuento.`; vcls='bg-ocre'; }
+  else { vd = `US$ ${Math.round(efectivo)}/m2 efectivo: muy por encima de la banda del nivel ${nivel} (${b.min} a ${b.max}). Carisimo para lo que es: el costo oculto domina.`; vcls='bg-terracota'; }
 
   const row = (l, v, strong) => `<div class="flex justify-between ${strong?'font-bold text-base':'text-sm text-hueso/85'} py-0.5"><span>${l}</span><span class="tabular-nums">${v}</span></div>`;
   document.getElementById('calc-output').innerHTML = `
@@ -433,7 +448,7 @@ function calcCompute(){
 function calcPrefillOptions(){
   const sel = document.getElementById('calc-load');
   sel.innerHTML = '<option value="">elegir...</option>' + C.map(c =>
-    `<option value="${c.id}">#${NUM[c.id]} ${c.zona}${c.usd==null?' (a consultar)':''}</option>`).join('');
+    `<option value="${c.id}">#${NUM[c.id]} [${c.nivel}] ${c.zona}${c.usd==null?' (a consultar)':''}</option>`).join('');
   sel.addEventListener('change', () => {
     const c = C.find(x => x.id===sel.value); if (!c) return;
     document.getElementById('calc-m2').value = c.m2;
@@ -444,11 +459,12 @@ function calcPrefillOptions(){
     document.getElementById('calc-aljibe').checked = false;
     document.getElementById('calc-luz-lote').checked = (c.luz==='red');
     document.getElementById('calc-pend').value = c.pendiente || 'suave';
+    document.getElementById('calc-nivel').value = (c.nivel==='X') ? 'C' : c.nivel;
     calcCompute();
   });
 }
 function wireCalc(){
-  ['calc-m2','calc-precio','calc-precio-modo','calc-agua-red','calc-aljibe','calc-perf-m','calc-luz-lote','calc-poste-m','calc-pend','calc-septica']
+  ['calc-m2','calc-precio','calc-precio-modo','calc-agua-red','calc-aljibe','calc-perf-m','calc-luz-lote','calc-poste-m','calc-pend','calc-septica','calc-nivel']
     .forEach(id => { const el=document.getElementById(id); el.addEventListener('input', calcCompute); el.addEventListener('change', calcCompute); });
   calcPrefillOptions();
   calcCompute();
@@ -463,6 +479,7 @@ function renderComparar(){
     return;
   }
   const rowsDef = [
+    ['Nivel', c => NIVELES[c.nivel].label],
     ['Zona', c => c.zona],
     ['m2', c => nf.format(c.m2)],
     ['USD total', c => c.usd==null?'a consultar':fUSD(c.usd)],
@@ -498,9 +515,11 @@ function init(){
   renderGaleria();
   renderTabla();
   renderComparar();
+  renderProsContras();
   renderListas();
   renderNormativa();
   renderCostoOculto();
+  renderLegend();
   wireSort(); wireFiltros(); wirePesos(); wireChart(); wireCalc();
   renderChart();
   initMapa();
